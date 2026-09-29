@@ -9,6 +9,7 @@ Every compartment is a Registry of interchangeable parts:
     MODELS        build(n_in, n_out, cfg) -> nn.Module             models.py
     LAYERS        factory(d_in, d_out) -> nn.Module                layers.py
     SKIPS         fn(h, x) -> tensor                               layers.py
+    EXPANSIONS    factory(n_in) -> nn.Module                       layers.py
     ACTIVATIONS   factory() -> nn.Module                           activations.py
     INITIALIZERS  fn(model) -> None                                initializers.py
     LOSSES        fn(logits, y) -> scalar tensor                   losses.py
@@ -29,7 +30,7 @@ from .config import Config
 from .datasets import DATASETS, SPLITTERS
 from .features import FEATURES, featurize
 from .initializers import INITIALIZERS
-from .layers import LAYERS, SKIPS
+from .layers import EXPANSIONS, LAYERS, SKIPS
 from .losses import LOSSES
 from .metrics import METRICS
 from .models import MLP, MODELS, parse_layers
@@ -43,11 +44,11 @@ torch.set_num_threads(1)  # tiny nets: threading overhead > work
 
 REGISTRIES = {
     "dataset": DATASETS, "splitter": SPLITTERS, "features": FEATURES, "model": MODELS,
-    "layer": LAYERS, "skip": SKIPS, "activation": ACTIVATIONS, "init": INITIALIZERS,
+    "layer": LAYERS, "skip": SKIPS, "expand": EXPANSIONS, "activation": ACTIVATIONS, "init": INITIALIZERS,
     "loss": LOSSES, "optimizer": OPTIMIZERS, "schedule": SCHEDULES,
     "train_step": TRAIN_STEPS, "sampler": SAMPLERS, "metrics": METRICS,
 }  # Config field -> registry it names
 
 __all__ = ["Config", "Session", "Registry", "REGISTRIES", "MLP", "parse_layers", "featurize",
-           "ACTIVATIONS", "DATASETS", "SPLITTERS", "FEATURES", "INITIALIZERS", "LAYERS", "SKIPS",
+           "ACTIVATIONS", "DATASETS", "SPLITTERS", "FEATURES", "INITIALIZERS", "LAYERS", "SKIPS", "EXPANSIONS",
            "LOSSES", "METRICS", "MODELS", "OPTIMIZERS", "SCHEDULES", "SAMPLERS", "TRAIN_STEPS"]

@@ -25,6 +25,8 @@ def parse_value(f, text):
     if f.name == "extra":
         raise SystemExit("set 'extra' from code, not the command line")
     default = f.default
+    if isinstance(default, bool):  # bool("False") is True, so parse it by hand
+        return text.lower() in ("1", "true", "yes", "on")
     return type(default)(text) if isinstance(default, (int, float)) else text
 
 

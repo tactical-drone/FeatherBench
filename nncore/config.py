@@ -25,6 +25,7 @@ class Config:
     features: tuple = ("x", "y")          # FEATURES (one or more)
     model: str = "mlp"                    # MODELS
     width: int = 8                        # width
+    expand: str = "linear"                # EXPANSIONS (custom nn: widens x,y before hid)
     layers: str = "8,8"                   # mlp: "4,4" or "8:sin,4:tanh", empty = linear
     activation: str = "tanh"              # ACTIVATIONS (default for layers without :act)
     layer: str = "linear"                 # LAYERS
@@ -50,7 +51,7 @@ class Config:
 
 
 DATA_KEYS = {"dataset", "n_points", "noise", "splitter", "test_frac", "seed"}
-MODEL_KEYS = {"features", "model", "layers", "activation", "width", "layer", "skip", "init", "extra"}
+MODEL_KEYS = {"features", "model", "layers", "activation", "width", "expand", "layer", "skip", "init", "extra"}
 OPT_KEYS = {"optimizer", "lr", "weight_decay", "schedule"}
 SAMPLER_KEYS = {"sampler", "batch_size"}
 LIVE_KEYS = {"loss", "train_step"}  # looked up every step, take effect immediately

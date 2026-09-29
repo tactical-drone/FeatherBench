@@ -13,7 +13,7 @@ import torch
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 from nncore import (ACTIVATIONS, DATASETS, FEATURES, INITIALIZERS, LAYERS, LOSSES, MODELS,
-                    OPTIMIZERS, SAMPLERS, SCHEDULES, SKIPS, SPLITTERS, TRAIN_STEPS, Config,
+                    EXPANSIONS, OPTIMIZERS, SAMPLERS, SCHEDULES, SKIPS, SPLITTERS, TRAIN_STEPS, Config,
                     Session)
 
 from . import theme
@@ -139,6 +139,8 @@ class Playground(QtWidgets.QMainWindow):
         self.sp_width.setValue(c.width)
         self.sp_width.editingFinished.connect(apply)
         form.addRow("Width", self.sp_width)
+        self.cb_expand = combo(EXPANSIONS, c.expand, apply)
+        form.addRow("Expand input", self.cb_expand)
         
         self.cb_act = combo(ACTIVATIONS, c.activation, apply)
         form.addRow("Activation", self.cb_act)
@@ -250,6 +252,7 @@ class Playground(QtWidgets.QMainWindow):
             seed=self.sp_seed.value(),
             features=tuple(f for f, ch in self.feat_checks.items() if ch.isChecked()) or ("x", "y"),
             model=self.cb_model.currentText(), layers=self.le_layers.text(), width=self.sp_width.value(),
+            expand=self.cb_expand.currentText(),
             activation=self.cb_act.currentText(), layer=self.cb_layer.currentText(),
             skip=self.cb_skip.currentText(), init=self.cb_init.currentText(),
             loss=self.cb_loss.currentText(), optimizer=self.cb_opt.currentText(), lr=lr,
