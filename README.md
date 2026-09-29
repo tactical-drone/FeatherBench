@@ -82,3 +82,8 @@ when it changes.
 - XOR gate (4 points): 2 tanh neurons solve it (most seeds). 1 neuron works too: `1:square` every seed I tried, `1:abs` only on some. Why?
 - Spiral (2 arms) with x, y only: find the smallest net that hits 100%. Try `sin`.
 - Same spiral, residual on, `16,16,16,16` relu vs gelu.
+
+## License
+
+Copyright (C) 2026 tactical-drone. Licensed under the [GNU AGPL v3.0](LICENSE).
+Commercial licenses are available, see [COMMERCIAL.md](COMMERCIAL.md).
