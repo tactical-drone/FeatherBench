@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from nncore import (ACTIVATIONS, DATASETS, EXPANSIONS, FEATURES, INITIALIZERS, LAYERS, LOSSES,  # noqa: F401
+from nncore import (ACTIVATIONS, DATASETS, EXPANSIONS, FEATURES, make_expansion, INITIALIZERS, LAYERS, LOSSES,  # noqa: F401
                     METRICS, MODELS, OPTIMIZERS, SAMPLERS, SCHEDULES, SKIPS, TRAIN_STEPS)
 
 # --- activation --------------------------------------------------------------
@@ -43,10 +43,10 @@ SKIPS.register("concat", lambda h, x: torch.cat([h, x], -1))   # DenseNet style
 # Must return a module with forward(x, collect=False), hidden_sizes, describe().
 class Wide(nn.Module):
     def __init__(self, n_in, n_out, width, activation, skip="none", expand="linear", classes=5,
-                 act_decide="same", act_relate="same", act_prepare="same"):
+                 act_decide="same", act_relate="same", act_prepare="same", fourier_freq=3.0):
         super().__init__()
         n_perc = classes                            # was n_out*2
-        self.flank = EXPANSIONS.get(expand)(n_in)   # factory(n_in) -> nn.Module
+        self.flank = make_expansion(expand, n_in, scale=fourier_freq)  # factory(n_in) -> nn.Module
         n_x = self.flank(torch.zeros(1, n_in)).shape[-1]  # what hid sees: expanded width
         self.hid, self.head = nn.Linear(n_x, width), nn.Linear(width, n_perc)
         self.perc = nn.Linear(n_perc, n_perc)
@@ -81,4 +81,4 @@ class Wide(nn.Module):
         return (out, [flank, hidden, head, decide, perc, relate, prepare, out]) if collect else out
 
 MODELS.register("custom nn", lambda n_in, n_out, cfg: Wide(n_in, n_out, cfg.width, cfg.activation, cfg.skip, cfg.expand, cfg.classes,
-                                                                   cfg.act_decide, cfg.act_relate, cfg.act_prepare))
+                                                                   cfg.act_decide, cfg.act_relate, cfg.act_prepare, cfg.fourier_freq))

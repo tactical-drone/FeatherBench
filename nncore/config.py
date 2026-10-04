@@ -27,6 +27,7 @@ class Config:
     width: int = 8                        # width
     classes: int = 5                      # custom nn: width of the head/decide/perc stage
     expand: str = "linear"                # EXPANSIONS (custom nn: widens x,y before hid)
+    fourier_freq: float = 3.0             # fourier expansion: spread (std) of starting frequencies
     layers: str = "8,8"                   # mlp: "4,4" or "8:sin,4:tanh", empty = linear
     activation: str = "tanh"              # ACTIVATIONS (default for layers without :act)
     act_decide: str = "same"              # custom nn: ACTIVATIONS for decide, "same" = activation
@@ -55,7 +56,7 @@ class Config:
 
 
 DATA_KEYS = {"dataset", "n_points", "noise", "splitter", "test_frac", "seed"}
-MODEL_KEYS = {"features", "model", "layers", "activation", "act_decide", "act_relate", "act_prepare", "width", "classes", "expand", "layer", "skip", "init", "extra"}
+MODEL_KEYS = {"features", "model", "layers", "activation", "act_decide", "act_relate", "act_prepare", "width", "classes", "expand", "fourier_freq", "layer", "skip", "init", "extra"}
 OPT_KEYS = {"optimizer", "lr", "weight_decay", "schedule"}
 SAMPLER_KEYS = {"sampler", "batch_size"}
 LIVE_KEYS = {"loss", "train_step"}  # looked up every step, take effect immediately

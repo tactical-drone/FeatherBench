@@ -30,7 +30,7 @@ from .config import Config
 from .datasets import DATASETS, SPLITTERS
 from .features import FEATURES, featurize
 from .initializers import INITIALIZERS
-from .layers import EXPANSIONS, LAYERS, SKIPS
+from .layers import EXPANSIONS, LAYERS, SKIPS, make_expansion
 from .losses import LOSSES
 from .metrics import METRICS
 from .models import MLP, MODELS, parse_layers
@@ -50,5 +50,5 @@ REGISTRIES = {
 }  # Config field -> registry it names
 
 __all__ = ["Config", "Session", "Registry", "REGISTRIES", "MLP", "parse_layers", "featurize",
-           "ACTIVATIONS", "DATASETS", "SPLITTERS", "FEATURES", "INITIALIZERS", "LAYERS", "SKIPS", "EXPANSIONS",
+           "ACTIVATIONS", "DATASETS", "SPLITTERS", "FEATURES", "INITIALIZERS", "LAYERS", "SKIPS", "EXPANSIONS", "make_expansion",
            "LOSSES", "METRICS", "MODELS", "OPTIMIZERS", "SCHEDULES", "SAMPLERS", "TRAIN_STEPS"]

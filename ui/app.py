@@ -146,6 +146,13 @@ class Playground(QtWidgets.QMainWindow):
         form.addRow("Classes", self.sp_classes)
         self.cb_expand = combo(EXPANSIONS, c.expand, apply)
         form.addRow("Expand input", self.cb_expand)
+        self.sp_ffreq = QtWidgets.QDoubleSpinBox()
+        self.sp_ffreq.setRange(0.1, 20)
+        self.sp_ffreq.setSingleStep(0.5)
+        self.sp_ffreq.setValue(c.fourier_freq)
+        self.sp_ffreq.setToolTip("fourier (sin) only: spread of the starting wave frequencies")
+        self.sp_ffreq.editingFinished.connect(apply)
+        form.addRow("  Fourier freq", self.sp_ffreq)
         
         self.cb_act = combo(ACTIVATIONS, c.activation, apply)
         form.addRow("Activation", self.cb_act)
@@ -293,7 +300,7 @@ class Playground(QtWidgets.QMainWindow):
             features=tuple(f for f, ch in self.feat_checks.items() if ch.isChecked()) or ("x", "y"),
             model=self.cb_model.currentText(), layers=self.le_layers.text(), width=self.sp_width.value(),
             classes=self.sp_classes.value(),
-            expand=self.cb_expand.currentText(),
+            expand=self.cb_expand.currentText(), fourier_freq=self.sp_ffreq.value(),
             activation=self.cb_act.currentText(),
             act_decide=self.cb_act_decide.currentText(), act_relate=self.cb_act_relate.currentText(),
             act_prepare=self.cb_act_prepare.currentText(), layer=self.cb_layer.currentText(),

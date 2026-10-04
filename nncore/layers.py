@@ -8,6 +8,7 @@ EXPANSIONS  factory(n_in) -> nn.Module          widens the raw inputs before the
                                                 first hidden layer; output width
                                                 is whatever the module returns
 """
+import inspect
 import math
 
 import torch
@@ -81,3 +82,14 @@ class RBF(nn.Module):
 EXPANSIONS.register("fourier (sin)", Fourier)
 EXPANSIONS.register("polar spiral", Polar)
 EXPANSIONS.register("rbf bumps", RBF)
+
+
+def make_expansion(name, n_in, **knobs):
+    """Build EXPANSIONS[name](n_in), passing only the knobs its factory accepts
+    (e.g. scale= for fourier), so plain factory(n_in) parts keep working."""
+    factory = EXPANSIONS.get(name)
+    try:
+        params = inspect.signature(factory).parameters
+    except (TypeError, ValueError):
+        params = {}
+    return factory(n_in, **{k: v for k, v in knobs.items() if k in params})
