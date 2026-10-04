@@ -63,7 +63,6 @@ class Wide(nn.Module):
         self.focus = nn.Linear(n_perc, n_out,False)
         self.width = width
         self.hidden_sizes = [n_x, width, n_perc, n_perc, n_perc, n_in, n_perc, n_out]  # one per tensor forward() collects
-        print("Width =", width);
     def describe(self):
         return f"wide {self.width}"
     def forward(self, x, collect=False):

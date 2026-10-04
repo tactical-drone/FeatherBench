@@ -26,13 +26,13 @@ class Config:
     model: str = "custom nn"              # MODELS (custom nn lives in my_parts.py)
     width: int = 8                        # width
     classes: int = 5                      # custom nn: width of the head/decide/perc stage
-    expand: str = "linear"                # EXPANSIONS (custom nn: widens x,y before hid)
+    expand: str = "fourier (sin)"         # EXPANSIONS (custom nn: widens x,y before hid)
     fourier_freq: float = 3.0             # fourier expansion: spread (std) of starting frequencies
     layers: str = "8,8"                   # mlp: "4,4" or "8:sin,4:tanh", empty = linear
-    activation: str = "tanh"              # ACTIVATIONS (default for layers without :act)
-    act_decide: str = "same"              # custom nn: ACTIVATIONS for decide, "same" = activation
+    activation: str = "softplus"          # ACTIVATIONS (default for layers without :act)
+    act_decide: str = "gauss"             # custom nn: ACTIVATIONS for decide, "same" = activation
     act_relate: str = "same"              # custom nn: ACTIVATIONS for relate
-    act_prepare: str = "same"             # custom nn: ACTIVATIONS for prepare
+    act_prepare: str = "linear"           # custom nn: ACTIVATIONS for prepare
     layer: str = "linear"                 # LAYERS
     skip: str = "none"                    # SKIPS
     init: str = "pytorch default"         # INITIALIZERS
@@ -41,8 +41,8 @@ class Config:
     loss: str = "cross entropy"           # LOSSES
     optimizer: str = "Adam"               # OPTIMIZERS
     lr: float = 0.03
-    weight_decay: float = 0.0
-    schedule: str = "constant"            # SCHEDULES
+    weight_decay: float = 1e-5
+    schedule: str = "step (÷10 every 2000)"  # SCHEDULES
     train_step: str = "standard"          # TRAIN_STEPS
 
     # batching
