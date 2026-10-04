@@ -42,23 +42,27 @@ SKIPS.register("concat", lambda h, x: torch.cat([h, x], -1))   # DenseNet style
 # --- whole architecture ------------------------------------------------------
 # Must return a module with forward(x, collect=False), hidden_sizes, describe().
 class Wide(nn.Module):
-    def __init__(self, n_in, n_out, width, activation, skip="none", expand="linear"):
+    def __init__(self, n_in, n_out, width, activation, skip="none", expand="linear", classes=5,
+                 act_decide="same", act_relate="same", act_prepare="same"):
         super().__init__()
-        n_perc = n_out*2
+        n_perc = classes                            # was n_out*2
         self.flank = EXPANSIONS.get(expand)(n_in)   # factory(n_in) -> nn.Module
         n_x = self.flank(torch.zeros(1, n_in)).shape[-1]  # what hid sees: expanded width
         self.hid, self.head = nn.Linear(n_x, width), nn.Linear(width, n_perc)
         self.perc = nn.Linear(n_perc, n_perc)
-        self.decide = nn.Linear(n_perc, n_perc)
-        self._tmp = nn.Linear(width, n_out)
+        self.relate = nn.Linear(n_perc, n_in)
+        self.prepare = nn.Linear(n_in, n_perc)
+        self.decide = nn.Linear(n_perc, n_perc)        
         self.act = ACTIVATIONS.get(activation)()   # factory() -> nn.Module
+        pick = lambda name: ACTIVATIONS.get(activation if name == "same" else name)()
+        self.act_decide, self.act_relate, self.act_prepare = pick(act_decide), pick(act_relate), pick(act_prepare)
         self.skip = SKIPS.get(skip)                # fn(h, x) -> tensor
         #d = n_out*2
         #pw = self.skip(torch.zeros(1, d), torch.zeros(1, d)).shape[-1]  # concat widens perc
         #self.focus = nn.Linear(pw, n_out, False)
-        self.focus = nn.Linear(n_perc, n_out)
+        self.focus = nn.Linear(n_perc, n_out,False)
         self.width = width
-        self.hidden_sizes = [n_x, width, n_perc, n_perc, n_perc, n_out]  # one per tensor forward() collects
+        self.hidden_sizes = [n_x, width, n_perc, n_perc, n_perc, n_in, n_perc, n_out]  # one per tensor forward() collects
         print("Width =", width);
     def describe(self):
         return f"wide {self.width}"
@@ -69,10 +73,13 @@ class Wide(nn.Module):
         hidden = self.act(self.hid(flank)) # w
         head = self.head(hidden)
         ##gut = self.act(flank)
-        decide = self.act(self.decide(head))
-        perc = self.perc(decide)                
-        #out = self.focus(perc) 
-        out = self._tmp(hidden)
-        return (out, [flank, hidden, head, decide, perc, out]) if collect else out
+        decide = self.act_decide(self.decide(head))
+        perc = self.perc(decide)        
+        relate = self.act_relate(self.relate(perc))                
+        prepare = self.act_prepare(self.prepare(relate))           
+        out = self.focus(prepare) 
+        #out = self._tmp(hidden)
+        return (out, [flank, hidden, head, decide, perc, relate, prepare, out]) if collect else out
 
-MODELS.register("custom nn", lambda n_in, n_out, cfg: Wide(n_in, n_out, cfg.width, cfg.activation, cfg.skip, cfg.expand))
+MODELS.register("custom nn", lambda n_in, n_out, cfg: Wide(n_in, n_out, cfg.width, cfg.activation, cfg.skip, cfg.expand, cfg.classes,
+                                                                   cfg.act_decide, cfg.act_relate, cfg.act_prepare))

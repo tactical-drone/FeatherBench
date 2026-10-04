@@ -139,11 +139,23 @@ class Playground(QtWidgets.QMainWindow):
         self.sp_width.setValue(c.width)
         self.sp_width.editingFinished.connect(apply)
         form.addRow("Width", self.sp_width)
+        self.sp_classes = QtWidgets.QSpinBox()
+        self.sp_classes.setRange(1, 128)
+        self.sp_classes.setValue(c.classes)
+        self.sp_classes.editingFinished.connect(apply)
+        form.addRow("Classes", self.sp_classes)
         self.cb_expand = combo(EXPANSIONS, c.expand, apply)
         form.addRow("Expand input", self.cb_expand)
         
         self.cb_act = combo(ACTIVATIONS, c.activation, apply)
         form.addRow("Activation", self.cb_act)
+        same_or_act = ["same", *ACTIVATIONS]  # "same" follows Activation
+        self.cb_act_decide = combo(same_or_act, c.act_decide, apply)
+        form.addRow("  act: decide", self.cb_act_decide)
+        self.cb_act_relate = combo(same_or_act, c.act_relate, apply)
+        form.addRow("  act: relate", self.cb_act_relate)
+        self.cb_act_prepare = combo(same_or_act, c.act_prepare, apply)
+        form.addRow("  act: prepare", self.cb_act_prepare)
         self.cb_layer = combo(LAYERS, c.layer, apply)
         form.addRow("Layer type", self.cb_layer)
         self.cb_skip = combo(SKIPS, c.skip, apply)
@@ -252,8 +264,11 @@ class Playground(QtWidgets.QMainWindow):
             seed=self.sp_seed.value(),
             features=tuple(f for f, ch in self.feat_checks.items() if ch.isChecked()) or ("x", "y"),
             model=self.cb_model.currentText(), layers=self.le_layers.text(), width=self.sp_width.value(),
+            classes=self.sp_classes.value(),
             expand=self.cb_expand.currentText(),
-            activation=self.cb_act.currentText(), layer=self.cb_layer.currentText(),
+            activation=self.cb_act.currentText(),
+            act_decide=self.cb_act_decide.currentText(), act_relate=self.cb_act_relate.currentText(),
+            act_prepare=self.cb_act_prepare.currentText(), layer=self.cb_layer.currentText(),
             skip=self.cb_skip.currentText(), init=self.cb_init.currentText(),
             loss=self.cb_loss.currentText(), optimizer=self.cb_opt.currentText(), lr=lr,
             weight_decay=float(self.cb_wd.currentText()), schedule=self.cb_sched.currentText(),

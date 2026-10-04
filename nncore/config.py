@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass, field, fields
 @dataclass
 class Config:
     # data
-    dataset: str = "Spiral (2 arms)"      # DATASETS
+    dataset: str = "Spiral (5 arms)"      # DATASETS
     n_points: int = 600
     noise: float = 0.05
     splitter: str = "random"              # SPLITTERS
@@ -23,11 +23,15 @@ class Config:
 
     # model
     features: tuple = ("x", "y")          # FEATURES (one or more)
-    model: str = "mlp"                    # MODELS
+    model: str = "custom nn"              # MODELS (custom nn lives in my_parts.py)
     width: int = 8                        # width
+    classes: int = 5                      # custom nn: width of the head/decide/perc stage
     expand: str = "linear"                # EXPANSIONS (custom nn: widens x,y before hid)
     layers: str = "8,8"                   # mlp: "4,4" or "8:sin,4:tanh", empty = linear
     activation: str = "tanh"              # ACTIVATIONS (default for layers without :act)
+    act_decide: str = "same"              # custom nn: ACTIVATIONS for decide, "same" = activation
+    act_relate: str = "same"              # custom nn: ACTIVATIONS for relate
+    act_prepare: str = "same"             # custom nn: ACTIVATIONS for prepare
     layer: str = "linear"                 # LAYERS
     skip: str = "none"                    # SKIPS
     init: str = "pytorch default"         # INITIALIZERS
@@ -51,7 +55,7 @@ class Config:
 
 
 DATA_KEYS = {"dataset", "n_points", "noise", "splitter", "test_frac", "seed"}
-MODEL_KEYS = {"features", "model", "layers", "activation", "width", "expand", "layer", "skip", "init", "extra"}
+MODEL_KEYS = {"features", "model", "layers", "activation", "act_decide", "act_relate", "act_prepare", "width", "classes", "expand", "layer", "skip", "init", "extra"}
 OPT_KEYS = {"optimizer", "lr", "weight_decay", "schedule"}
 SAMPLER_KEYS = {"sampler", "batch_size"}
 LIVE_KEYS = {"loss", "train_step"}  # looked up every step, take effect immediately
