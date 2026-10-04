@@ -67,18 +67,17 @@ class Wide(nn.Module):
     def describe(self):
         return f"wide {self.width}"
     def forward(self, x, collect=False):
-        #h = torch.relu(self.hid(x))
-        #h = F.gelu(self.hid(x))
-        flank = self.flank(x) # expanded input
-        hidden = self.act(self.hid(flank)) # w
+        
+        flank = self.flank(x)
+        hidden = self.act(self.hid(flank))
         head = self.head(hidden)
-        ##gut = self.act(flank)
+
         decide = self.act_decide(self.decide(head))
         perc = self.perc(decide)        
-        relate = self.act_relate(self.relate(perc))                
+        relate = self.act_relate(self.relate(perc))
+
         prepare = self.act_prepare(self.prepare(relate))           
-        out = self.focus(prepare) 
-        #out = self._tmp(hidden)
+        out = self.focus(prepare)         
         return (out, [flank, hidden, head, decide, perc, relate, prepare, out]) if collect else out
 
 MODELS.register("custom nn", lambda n_in, n_out, cfg: Wide(n_in, n_out, cfg.width, cfg.activation, cfg.skip, cfg.expand, cfg.classes,

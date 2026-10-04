@@ -44,6 +44,14 @@ def hard_classes(probs, r):
     return rgb.view(r, r, 3).to(torch.uint8).numpy()
 
 
+@NEURON_PAINTERS.register("full range")
+def full_range(H):
+    """Each neuron stretched min..max over the whole palette, however flat it is."""
+    lo, hi = H.amin(0), H.amax(0)
+    H = (H - lo) / (hi - lo).clamp_min(1e-9)
+    return (H * 255).to(torch.uint8).T.contiguous().numpy()
+
+
 @NEURON_PAINTERS.register("per-neuron max")
 def per_neuron_max(H):
     H = H / H.abs().amax(0).clamp_min(1e-9)  # each neuron scaled to [-1, 1]

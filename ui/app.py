@@ -221,7 +221,9 @@ class Playground(QtWidgets.QMainWindow):
                         ("R", self.reset_weights), ("N", self.reseed)):
             QtGui.QShortcut(QtGui.QKeySequence(key), self, activated=fn)
 
-        # right side: boundary | (neurons over loss)
+        # right side: boundary | (neurons over [loss | activation] tabs)
+        # Everything stays in ONE GraphicsLayoutWidget: each extra pyqtgraph view is
+        # another OpenGL viewport with --opengl, and several of them froze the app.
         self.gl = pg.GraphicsLayoutWidget()
         root.addWidget(self.gl, 1)
         self.p_main = self.gl.addPlot(row=0, col=0, rowspan=2, title="decision boundary")
@@ -239,13 +241,39 @@ class Playground(QtWidgets.QMainWindow):
         self.p_main.addItem(self.sc_test)
 
         self.gl_neurons = self.gl.addLayout(row=0, col=1)
-        self.p_loss = self.gl.addPlot(row=1, col=1, title="loss (train cyan, test magenta)")
+        self.gl_bottom = self.gl.addLayout(row=1, col=1)  # tab strip over the shown plot
+        self.tabbar = QtWidgets.QTabBar()
+        self.tabbar.addTab("Loss")
+        self.tabbar.addTab("Activation")
+        tab_proxy = QtWidgets.QGraphicsProxyWidget()
+        tab_proxy.setWidget(self.tabbar)
+        self.gl_bottom.addItem(tab_proxy, row=0, col=0)
+
+        self.p_loss = pg.PlotItem(title="loss (train cyan, test magenta)")
         self.p_loss.setLogMode(y=True)
         self.p_loss.showGrid(x=True, y=True, alpha=0.2)
         self.p_loss.setClipToView(True)
         self.p_loss.setDownsampling(auto=True, mode="peak")
         self.c_train = self.p_loss.plot(pen=pg.mkPen(theme.TRAIN_PEN, width=2))
         self.c_test = self.p_loss.plot(pen=pg.mkPen(theme.TEST_PEN, width=2))
+        for c in (self.c_train, self.c_test):  # wide antialiased path strokes get slow
+            c.curve.setSegmentedLineMode("on")  # on long noisy curves; plain segments stay fast
+
+        # activation preview: shows whichever activation dropdown was changed last
+        self.p_act = pg.PlotItem()
+        self.p_act.showGrid(x=True, y=True, alpha=0.2)
+        self.p_act.addLegend(offset=(10, 10))
+        self.p_act.addLine(x=0, pen=pg.mkPen(theme.WINDOW_FG, width=1, style=QtCore.Qt.PenStyle.DotLine))
+        self.p_act.addLine(y=0, pen=pg.mkPen(theme.WINDOW_FG, width=1, style=QtCore.Qt.PenStyle.DotLine))
+        self.c_act = self.p_act.plot(pen=pg.mkPen(theme.TRAIN_PEN, width=2.5), name="f(x)")
+        self.c_dact = self.p_act.plot(pen=pg.mkPen(theme.TEST_PEN, width=1.5,
+                                                   style=QtCore.Qt.PenStyle.DashLine), name="f'(x)")
+        for label, cb in (("Activation", self.cb_act), ("act: decide", self.cb_act_decide),
+                          ("act: relate", self.cb_act_relate), ("act: prepare", self.cb_act_prepare)):
+            cb.currentTextChanged.connect(lambda name, label=label: self._show_activation(name, label))
+        self._show_activation(self.cb_act.currentText(), "Activation")
+        self.gl_bottom.addItem(self.p_loss, row=1, col=0)
+        self.tabbar.currentChanged.connect(self._switch_tab)
         self.gl.ci.layout.setColumnStretchFactor(0, 3)
         self.gl.ci.layout.setColumnStretchFactor(1, 2)
 
@@ -336,10 +364,14 @@ class Playground(QtWidgets.QMainWindow):
             self.view_layer = None
             return
         self.view_layer = min(int(txt.split()[1]) - 1, len(sizes) - 1)
-        n = min(sizes[self.view_layer], MAX_THUMBS)
+        size = sizes[self.view_layer]
+        n = min(size, MAX_THUMBS)
         cols = max(1, math.ceil(math.sqrt(n * 1.5)))
+        shown = f"  (first {n})" if n < size else ""
+        self.gl_neurons.addLabel(f"layer {self.view_layer + 1}  ·  {size} neurons{shown}",
+                                 row=0, col=0, colspan=cols, color=theme.TRAIN_PEN, size="11pt")
         for i in range(n):
-            vb = self.gl_neurons.addViewBox(row=i // cols, col=i % cols, lockAspect=True,
+            vb = self.gl_neurons.addViewBox(row=1 + i // cols, col=i % cols, lockAspect=True,
                                             enableMouse=False)
             im = pg.ImageItem(lut=theme.NEURON_LUT)
             vb.addItem(im)
@@ -347,6 +379,25 @@ class Playground(QtWidgets.QMainWindow):
                         padding=0)
             self.thumbs.append(im)
         self.render()
+
+    def _switch_tab(self, i):
+        """Swap the plot under the tab strip (both plots live in the one shared view)."""
+        old, new = (self.p_act, self.p_loss) if i == 0 else (self.p_loss, self.p_act)
+        self.gl_bottom.removeItem(old)
+        self.gl_bottom.addItem(new, row=1, col=0)
+
+    def _show_activation(self, name, label):
+        """Plot f(x) and its slope f'(x) for the activation just picked."""
+        if name == "same":
+            name = self.cb_act.currentText()
+        x = torch.linspace(-4, 4, 401, requires_grad=True)
+        with torch.enable_grad():  # render() runs under no_grad
+            y = ACTIVATIONS.get(name)()(x)
+            dy, = torch.autograd.grad(y.sum(), x)
+        xs = x.detach().numpy()
+        self.c_act.setData(xs, y.detach().numpy())
+        self.c_dact.setData(xs, dy.numpy())
+        self.p_act.setTitle(f"{label}: {name}")
 
     # ---------------------------------------------------------------- loop
     def toggle(self):

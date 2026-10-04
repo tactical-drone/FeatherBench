@@ -6,20 +6,28 @@ VIEW = 1.6  # half-width of the plotted plane
 PLANE = (-VIEW, -VIEW, 2 * VIEW, 2 * VIEW)  # x, y, w, h handed to ImageItem.setImage
 
 BG = np.array([11, 12, 16], dtype=np.float32)
+# the juicy palette below, ordered so neighbouring classes swap warm/cool
 CLASS_COLORS = np.array([
-    [245, 147, 34],   # orange
-    [8, 150, 230],    # blue
-    [255, 42, 109],   # magenta
-    [0, 240, 180],    # teal
-    [245, 230, 99],   # yellow
+    [0, 245, 212],    # aqua
+    [241, 91, 181],   # pink
+    [0, 187, 249],    # sky
+    [254, 228, 64],   # lemon
+    [155, 93, 229],   # violet
 ], dtype=np.float32)
-NEG = np.array([245, 147, 34], dtype=np.float32)
-POS = np.array([8, 150, 230], dtype=np.float32)
 BG_T, CLASS_COLORS_T = torch.from_numpy(BG), torch.from_numpy(CLASS_COLORS)
 
-# diverging LUT for neuron maps: -1 orange .. 0 background .. +1 blue
-_t = np.linspace(-1, 1, 256, dtype=np.float32)[:, None]
-NEURON_LUT = np.where(_t > 0, BG + (POS - BG) * _t, BG + (NEG - BG) * -_t).astype(np.uint8)
+# juicy LUT for neuron maps, no dark middle so every neuron stays colourful:
+# aqua .. sky .. violet (0) .. pink .. lemon
+_STOPS = np.array([0.0, 0.25, 0.5, 0.75, 1.0])
+_JUICY = np.array([
+    [0, 245, 212],    # aqua
+    [0, 187, 249],    # sky
+    [155, 93, 229],   # violet
+    [241, 91, 181],   # pink
+    [254, 228, 64],   # lemon
+], dtype=np.float32)
+_t = np.linspace(0, 1, 256)
+NEURON_LUT = np.stack([np.interp(_t, _STOPS, _JUICY[:, c]) for c in range(3)], 1).astype(np.uint8)
 
 WINDOW_BG, WINDOW_FG = "#0b0c10", "#c8d0e0"
 TRAIN_PEN, TEST_PEN = "#00f0ff", "#ff2a6d"
