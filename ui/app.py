@@ -819,7 +819,9 @@ class Playground(QtWidgets.QMainWindow):
 
     def show_about(self):
         QtWidgets.QMessageBox.about(
-            self, "About", f"<h3>{TITLE}</h3><p>Version {VERSION}. Tiny neural nets, trained live.</p>"
+            self, "About", f"<p><img src='{(REPO_ROOT / 'brand' / 'icon-64.png').as_posix()}' width='64'></p>"
+            f"<h3>{TITLE}</h3><p>Version {VERSION}. Tiny neural nets, trained live. Home of "
+            "<b>FeatherBench</b>: fewest params that solves every pattern wins.</p>"
             "<p>Copyright (C) 2026 tactical-drone. Licensed under the GNU AGPL v3.0; "
             "commercial licenses available (see COMMERCIAL.md).</p>")
 
@@ -1277,6 +1279,9 @@ def run(opengl=False, cfg=None, fresh=False, settings_file=None):
     pg.setConfigOptions(imageAxisOrder="row-major", antialias=True, useOpenGL=opengl,
                         background=theme.WINDOW_BG, foreground=theme.WINDOW_FG)
     app = pg.mkQApp("NN Playground")
+    icon = REPO_ROOT / "brand" / "logo-256.png"
+    if icon.exists():
+        app.setWindowIcon(QtGui.QIcon(str(icon)))
     w = Playground(cfg, restore=cfg is None and not fresh)
     _install_error_handler(w)
     if settings_file:

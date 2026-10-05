@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+  <filter id="glow" x="-60%" y="-40%" width="220%" height="180%">
+    <feGaussianBlur stdDeviation="6"/>
+  </filter>
+  <filter id="glow-wide" x="-100%" y="-60%" width="300%" height="220%">
+    <feGaussianBlur stdDeviation="16"/>
+  </filter>
+  </defs>
+  <defs>
+    <radialGradient id="vignette" cx="0.5" cy="0.45" r="0.75">
+      <stop offset="0" stop-color="#29283c"/>
+      <stop offset="1" stop-color="#1b1a29"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#vignette)"/>
+<g transform="translate(22 30) scale(0.95)">
+  <g transform="translate(0 0) rotate(-7 50 150)">
+    <defs>
+      <linearGradient id="g-pink" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#f8a1cd"/>
+        <stop offset="1" stop-color="#f097c2"/>
+      </linearGradient>
+    </defs>
+    <path d="M50 152 C30 140 19 106 25 73 C30 45 45 22 60 7 C67 30 81 50 79 82 C77 113 67 140 50 152 Z" fill="#ff3295" opacity="0.55" filter="url(#glow-wide)"/>
+    <path d="M50 152 C30 140 19 106 25 73 C30 45 45 22 60 7 C67 30 81 50 79 82 C77 113 67 140 50 152 Z" fill="#ff3295" opacity="0.9" filter="url(#glow)"/>
+    <path d="M50 151 C50 165 49.5 178 49 192" stroke="#ff3295" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7" filter="url(#glow)"/>
+    <path d="M50 152 C30 140 19 106 25 73 C30 45 45 22 60 7 C67 30 81 50 79 82 C77 113 67 140 50 152 Z" fill="url(#g-pink)"/>
+    <g><path d="M24.19 98 L32.59 92.5" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/><path d="M28.13 62 L35.53 58.5" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/><path d="M78.41 70 L71.01 74" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/><path d="M74.59 108 L67.19 110.5" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/></g>
+    <path d="M50 152 C51 112 53 62 60 9" stroke="#955373" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M50 151 C50 165 49.5 178 49 192" stroke="#f8a1cd" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g>
+  <g transform="translate(62 0) rotate(0 50 150)">
+    <defs>
+      <linearGradient id="g-lavender" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#cbcdff"/>
+        <stop offset="1" stop-color="#c2c3ff"/>
+      </linearGradient>
+    </defs>
+    <path d="M50 152 C30 140 19 106 25 73 C30 45 45 22 60 7 C67 30 81 50 79 82 C77 113 67 140 50 152 Z" fill="#7274ff" opacity="0.55" filter="url(#glow-wide)"/>
+    <path d="M50 152 C30 140 19 106 25 73 C30 45 45 22 60 7 C67 30 81 50 79 82 C77 113 67 140 50 152 Z" fill="#7274ff" opacity="0.9" filter="url(#glow)"/>
+    <path d="M50 151 C50 165 49.5 178 49 192" stroke="#7274ff" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7" filter="url(#glow)"/>
+    <path d="M50 152 C30 140 19 106 25 73 C30 45 45 22 60 7 C67 30 81 50 79 82 C77 113 67 140 50 152 Z" fill="url(#g-lavender)"/>
+    <g><path d="M24.19 98 L32.59 92.5" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/><path d="M28.13 62 L35.53 58.5" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/><path d="M78.41 70 L71.01 74" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/><path d="M74.59 108 L67.19 110.5" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/></g>
+    <path d="M50 152 C51 112 53 62 60 9" stroke="#71719e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M50 151 C50 165 49.5 178 49 192" stroke="#cbcdff" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g>
+  <g transform="translate(124 0) rotate(7 50 150)">
+    <defs>
+      <linearGradient id="g-mint" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#b2fff7"/>
+        <stop offset="1" stop-color="#a4f7ed"/>
+      </linearGradient>
+    </defs>
+    <path d="M50 152 C30 140 19 106 25 73 C30 45 45 22 60 7 C67 30 81 50 79 82 C77 113 67 140 50 152 Z" fill="#43ffe8" opacity="0.55" filter="url(#glow-wide)"/>
+    <path d="M50 152 C30 140 19 106 25 73 C30 45 45 22 60 7 C67 30 81 50 79 82 C77 113 67 140 50 152 Z" fill="#43ffe8" opacity="0.9" filter="url(#glow)"/>
+    <path d="M50 151 C50 165 49.5 178 49 192" stroke="#43ffe8" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7" filter="url(#glow)"/>
+    <path d="M50 152 C30 140 19 106 25 73 C30 45 45 22 60 7 C67 30 81 50 79 82 C77 113 67 140 50 152 Z" fill="url(#g-mint)"/>
+    <g><path d="M24.19 98 L32.59 92.5" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/><path d="M28.13 62 L35.53 58.5" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/><path d="M78.41 70 L71.01 74" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/><path d="M74.59 108 L67.19 110.5" stroke="#29283c" stroke-width="1.7" opacity="0.85" stroke-linecap="round" fill="none"/></g>
+    <path d="M50 152 C51 112 53 62 60 9" stroke="#5b9992" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M50 151 C50 165 49.5 178 49 192" stroke="#b2fff7" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g></g>
+</svg>

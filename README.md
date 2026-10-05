@@ -1,5 +1,7 @@
 # NN Playground · FeatherBench
 
+<p align="center"><img src="brand/wordmark.png" alt="FeatherBench: fewest params that solves every pattern wins" width="720"></p>
+
 Tiny neural nets trained live: decision boundary, per-neuron maps and loss curve,
 redrawn every frame. Every piece of the net is a swappable part. And a world record
 nobody holds yet.
