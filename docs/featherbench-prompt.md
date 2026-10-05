@@ -2,7 +2,7 @@
 
 # The FeatherBench prompt (for bridgebench.ai/test-prompts)
 
-**Prompt name:** Set a FeatherBench world record: the smallest neural net that solves every pattern
+**Prompt name:** Top the FeatherBench Intelligence Index: the smallest neural net that solves every pattern
 
 **Linked repository:** https://github.com/tactical-drone/FeatherBench
 
@@ -11,7 +11,7 @@ numbers are from launch day; current standings are always in `featherbench/leade
 
 ---
 
-You are going to attempt a world record on FeatherBench, an open benchmark where the rule
+You are going to try to top the FeatherBench Intelligence Index, an open benchmark where the rule
 is simple: the fewest parameters that solve every pattern wins.
 
 Repository: https://github.com/tactical-drone/FeatherBench
@@ -21,7 +21,7 @@ checkerboard, hex tiles, parity lines, Voronoi cells, a 3-arm spiral, a tiny clu
 hiding in blobs, the Mandelbrot set, yin-yang, a smiley), 3 seeds each, a fixed budget of
 3000 training steps. A pattern is solved when the mean accuracy on 2000 fresh points is at
 least 90%. The score is params_max, the parameter count of your net on its biggest
-dataset. The record is held by whoever solves all 12 with the fewest params. At the time of
+dataset. The top spot goes to whoever solves all 12 with the fewest params. At the time of
 writing nobody has solved all 12; the house entry solves 9 at 346 params.
 
 Work like this:

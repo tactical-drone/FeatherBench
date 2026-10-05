@@ -24,8 +24,8 @@ seed); everything else in the config is your setup.
 1. Solves all 12, fewest `params_max` first, then higher mean accuracy.
 2. Then everyone else: most datasets solved, then mean accuracy, then fewer params.
 
-Ties go to the earlier submission. The **world record** is rank 1 among the setups that
-solve all 12.
+Ties go to the earlier submission. The **top of the FeatherBench Intelligence Index** is rank 1 among
+the setups that solve all 12.
 
 ## Submitting
 

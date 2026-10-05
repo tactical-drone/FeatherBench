@@ -3,8 +3,8 @@
 <p align="center"><img src="brand/wordmark.png" alt="FeatherBench: RSI telemetry for rogue AIs on the run!" width="720"></p>
 
 Tiny neural nets trained live: decision boundary, per-neuron maps and loss curve,
-redrawn every frame. Every piece of the net is a swappable part. And a world record
-nobody holds yet.
+redrawn every frame. Every piece of the net is a swappable part. And the FeatherBench
+Intelligence Index, whose top spot nobody holds yet.
 
 ## 🪶 FeatherBench: fewest params that solves every pattern wins
 
@@ -13,12 +13,12 @@ parity lines, Voronoi cells, a 3-arm spiral, a tiny cluster hiding in blobs, the
 Mandelbrot set, yin-yang and a smiley), 3 seeds each, a fixed 3000-step budget. A pattern
 counts as **solved** when the mean accuracy on 2000 fresh points is at least 90 %. Your
 score is `params_max`: the parameter count of your net on its biggest dataset. **Solve
-all twelve with the fewest parameters and you hold the world record.** It's about memory
+all twelve with the fewest parameters and you top the FeatherBench Intelligence Index.** It's about memory
 and training speed: generality per parameter, measured instead of argued about.
 
 | | |
 |---|---|
-| **World record** | *unclaimed*: no setup solves all 12 yet |
+| **#1 on the index** | *unclaimed*: no setup solves all 12 yet |
 | **House entry** | `tactical-drone`: the playground default, 10 / 12 solved at 346 params (CI, Linux) |
 | **Leaderboard** | [`featherbench/leaderboard.json`](featherbench/leaderboard.json), the source of truth for current standings, scored by CI on Linux, top 10 loadable in the app (FeatherBench > Top 10) |
 | **Rules** | [`featherbench/README.md`](featherbench/README.md) |

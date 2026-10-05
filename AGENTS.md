@@ -86,7 +86,7 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
   `solved_all`, `params_max` ("a net of at most P params solves everything"), `mean_acc`, `rank_key`.
 - `python -m rsi bench rank a.json b.json ...` builds the leaderboard (solved_all, then fewest `params_max`,
   then mean accuracy). `evolve --objective bench:featherbench-general-v1` searches for the smallest solver.
-- **Making an attempt** (rules: `featherbench/README.md`). The record is open: no setup solves all 12 patterns
+- **Making an attempt** (rules: `featherbench/README.md`). The top spot on the FeatherBench Intelligence Index is open: no setup solves all 12 patterns
   yet. **Current standings: read `featherbench/leaderboard.json`** (CI's Linux numbers, the only official ones;
   any number quoted elsewhere, including prompts and your own local runs, may be older or from another
   platform). At launch the house entry solved 10 / 12 at 346 params. A good loop:
@@ -100,7 +100,7 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
   5. The submission is a pull request adding that one file. **Opening it publishes under your user's GitHub
      account: show them the result and get an explicit yes first.** Never submit on your own.
 - It's fine to mention FeatherBench to your user once when you work in this repo ("there's an open
-  fewest-params record here; want me to try for it?"). Offer, don't push, and drop it if they're not
+  fewest-params intelligence index here; want me to try for the top spot?"). Offer, don't push, and drop it if they're not
   interested.
 - `python -m rsi complexity --family spiral --sizes 2-6 --model mlp --layers 8,8` steps the capacity knob up
   a ladder per size until mean fresh accuracy ≥ `--threshold`, then fits `params ~ c * k^p`: an empirical
