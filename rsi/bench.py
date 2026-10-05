@@ -1,11 +1,12 @@
 """
-bench: the fewest-params benchmark. "Whoever solves it with the least amount of
-params wins" (memory and training speed). A benchmark is a frozen, versioned
+bench: FeatherBench, the fewest-params benchmark. "Whoever solves it with the least
+amount of params wins" (memory and training speed): fewest params that solves every
+pattern wins. A benchmark is a frozen, versioned
 task: datasets x seeds at fixed n_points / noise / split / steps, scored on
 fresh points. A recipe is any config; the benchmark overrides its data fields.
 
-    python -m rsi bench list
-    python -m rsi bench --benchmark general-v1 --model mlp --layers 8:sin,8 --workers 7 --submit me.json
+    python -m rsi bench list                           (or: python -m rsi featherbench list)
+    python -m rsi bench --benchmark featherbench-general-v1 --model mlp --layers 8:sin,8 --workers 7 --submit me.json
     python -m rsi bench rank me.json you.json          # rsi/bench-leaderboard@1
 
 Scoring: per dataset, the mean fresh accuracy over the seeds (a failed cell counts
@@ -16,7 +17,9 @@ fewest params_max, then higher mean_acc; the others by n_solved, mean_acc, then
 fewer params_max. rank_key holds that order as a list that sorts ascending.
 
 Never edit a published benchmark: add "<name>-v2" instead (scores with a
-different definition hash do not compare).
+different definition hash do not compare). The v1 benchmarks were published as
+general-v1 / classic-v1 / quick-v1; those ids stay accepted aliases and stay in the
+hashed definition (hash_id), so their hashes and old submissions are unchanged.
 
 Part of nn-playground. AGPL-3.0; for other licensing see COMMERCIAL.md.
 """
@@ -54,11 +57,13 @@ class Benchmark:
     threshold: float = 0.90
     metric: str = "fresh_acc"
     title: str = ""
+    hash_id: str = ""  # the id the definition was first published (and hashed) under
 
     def definition(self):
-        """Everything that decides the numbers (hashed); title excluded."""
+        """Everything that decides the numbers (hashed); title and display id excluded."""
         d = dataclasses.asdict(self)
         d.pop("title")
+        d["id"] = d.pop("hash_id") or self.id
         d["datasets"], d["seeds"] = list(self.datasets), list(self.seeds)
         return d
 
@@ -72,7 +77,8 @@ class Benchmark:
                 "splitter": self.splitter, "seed": int(seed)}
 
     def to_dict(self):
-        return {**self.definition(), "title": self.title, "hash": self.hash,
+        return {**self.definition(), "id": self.id, "title": self.title, "hash": self.hash,
+                "aliases": [a for a, t in ALIASES.items() if t == self.id],
                 "n_cells": len(self.datasets) * len(self.seeds)}
 
 
@@ -82,22 +88,34 @@ _GENERAL_V1 = ("Bullseye (5 rings)", "Sectors (8 wedges)", "Egg crate (3)", "Che
                "Yin-yang", "Smiley")  # == SUITES["general"] on 2026-10-05
 _CLASSIC_V1 = ("XOR quadrants", "Spiral (2 arms)", "Spiral (3 arms)", "Spiral (4 arms)", "Spiral (5 arms)", "Circles",
                "Moons", "Checkerboard", "Gaussian blobs (5)")  # == SUITES["classic"] on 2026-10-05
+NAME = "FeatherBench"
+DEFAULT = "featherbench-general-v1"
 BENCHMARKS = {
-    "general-v1": Benchmark("general-v1", 1, _GENERAL_V1, title="general suite: 12 pattern families, 3 seeds"),
-    "classic-v1": Benchmark("classic-v1", 1, _CLASSIC_V1, title="the original playground datasets, 3 seeds"),
-    "quick-v1": Benchmark("quick-v1", 1, ("XOR quadrants", "Circles", "Moons", "Spiral (2 arms)"), seeds=(0,),
-                          steps=1000, fresh_points=1000, title="smoke test: 4 easy datasets, 1 seed, 1000 steps"),
+    "featherbench-general-v1": Benchmark("featherbench-general-v1", 1, _GENERAL_V1, hash_id="general-v1",
+                                         title="FeatherBench general: 12 pattern families, 3 seeds"),
+    "featherbench-classic-v1": Benchmark("featherbench-classic-v1", 1, _CLASSIC_V1, hash_id="classic-v1",
+                                         title="FeatherBench classic: the original playground datasets, 3 seeds"),
+    "featherbench-quick-v1": Benchmark("featherbench-quick-v1", 1, ("XOR quadrants", "Circles", "Moons", "Spiral (2 arms)"),
+                                       seeds=(0,), steps=1000, fresh_points=1000, hash_id="quick-v1",
+                                       title="FeatherBench quick: smoke test, 4 easy datasets, 1 seed, 1000 steps"),
 }
+ALIASES = {"general-v1": "featherbench-general-v1", "classic-v1": "featherbench-classic-v1",
+           "quick-v1": "featherbench-quick-v1"}  # the ids the v1 benchmarks were published under
+
+
+def canonical_id(bid):
+    """A benchmark id or alias -> its FeatherBench id (unknown ids pass through)."""
+    return ALIASES.get(bid, bid)
 
 
 def get_benchmark(bid):
     if isinstance(bid, Benchmark):
         return bid
-    b = BENCHMARKS.get(bid)
+    b = BENCHMARKS.get(canonical_id(bid))
     if b is None:
         import difflib
         raise RsiError(f"unknown benchmark '{bid}'", "E_UNKNOWN_PART", field="benchmark", value=bid,
-                       did_you_mean=difflib.get_close_matches(str(bid), list(BENCHMARKS), n=3),
+                       did_you_mean=difflib.get_close_matches(str(bid), [*BENCHMARKS, *ALIASES], n=3),
                        allowed=list(BENCHMARKS), hint="python -m rsi bench list")
     missing = [d for d in b.datasets if not configio.PART_REGISTRIES["dataset"].has(d)]
     if missing:
@@ -184,19 +202,20 @@ def scalar(summary):
 
 # ---------------------------------------------------------------- commands
 def list_benchmarks():
-    return {"benchmarks": [b.to_dict() for b in BENCHMARKS.values()], "default": "general-v1",
-            "objective": "fewest params that solve every dataset (bench rank)"}
+    return {"name": NAME, "benchmarks": [b.to_dict() for b in BENCHMARKS.values()], "default": DEFAULT,
+            "aliases": dict(ALIASES),
+            "objective": f"{NAME}: fewest params that solves every pattern wins (bench rank)"}
 
 
 @closes_stores
-def bench(config=None, benchmark="general-v1", workers=None, submit=None, *, overrides=None, steps=None, cache=True,
+def bench(config=None, benchmark=DEFAULT, workers=None, submit=None, *, overrides=None, steps=None, cache=True,
           store=None, parts=None, on_event=None):
     """Run a recipe on a benchmark; returns the submission (rsi/bench@1), also written to `submit`.
     steps overrides the benchmark's budget: the result is then unofficial (another definition hash)."""
     from . import api
     from .pool import Evaluator, cell_specs
     api.setup_parts(parts)
-    b = get_benchmark(benchmark or "general-v1")
+    b = get_benchmark(benchmark or DEFAULT)
     official = steps is None or int(steps) == b.steps
     if not official:
         if int(steps) < 1:
@@ -275,7 +294,7 @@ def _load(f):
 def rank(files, *, top=None):
     """rsi/bench-leaderboard@1 over submission files (one benchmark definition)."""
     docs = [(str(f), _load(f)) for f in files]
-    ids = {(d["benchmark"].get("id"), d["benchmark"].get("hash")) for _, d in docs}
+    ids = {(canonical_id(d["benchmark"].get("id")), d["benchmark"].get("hash")) for _, d in docs}  # old ids rank too
     if len(ids) > 1:
         raise RsiError(f"submissions are for different benchmarks: {sorted(map(str, ids))}", "E_BAD_SETTINGS",
                        value=sorted(map(str, ids)), hint="rank each benchmark id / definition hash separately")

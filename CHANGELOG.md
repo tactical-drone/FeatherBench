@@ -14,6 +14,11 @@ plus a code fingerprint, so you can tell which version produced a number.
   `concat` widens the next layer; a stage on `same` falls back to none where the main skip
   can't span a width change; an explicit misfit is refused at build time with a readable error.
 - UI: Skip is enabled for custom nn, with skip: decide / relate / prepare dropdowns.
+- The benchmark is named **FeatherBench**: fewest params that solves every pattern wins.
+  Ids are now `featherbench-general-v1`, `featherbench-classic-v1`, `featherbench-quick-v1`;
+  `general-v1`, `classic-v1`, `quick-v1` stay accepted (CLI, `bench:<id>` objectives, and
+  `bench rank` of old submissions), with unchanged definition hashes.
+  `python -m rsi featherbench` is an alias of `bench`. Schema ids are unchanged.
 
 ## 1.0.0 (date: TODO(V))
 

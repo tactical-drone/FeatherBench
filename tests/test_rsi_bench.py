@@ -8,7 +8,7 @@ from pathlib import Path
 from tests._util import quiet  # noqa: F401  (loads my_parts)
 import rsi
 from nncore.datasets import suite_datasets
-from rsi.bench import BENCHMARKS, Benchmark, rank_key, scalar, summarize_rows
+from rsi.bench import BENCHMARKS, Benchmark, canonical_id, get_benchmark, rank_key, scalar, summarize_rows
 from rsi.cli import invoke
 from rsi.errors import RsiError
 
@@ -29,18 +29,37 @@ class BenchTests(unittest.TestCase):
         cls.tmp.cleanup()
 
     def test_definitions(self):
-        self.assertEqual(list(BENCHMARKS["general-v1"].datasets), suite_datasets("general"))
-        self.assertEqual(list(BENCHMARKS["classic-v1"].datasets), suite_datasets("classic"))
-        q = BENCHMARKS["quick-v1"]
+        self.assertEqual(list(get_benchmark("general-v1").datasets), suite_datasets("general"))
+        self.assertEqual(list(get_benchmark("classic-v1").datasets), suite_datasets("classic"))
+        q = get_benchmark("quick-v1")
         self.assertEqual((len(q.datasets), q.seeds, q.steps), (4, (0,), 1000))
-        self.assertEqual(BENCHMARKS["general-v1"].hash, BENCHMARKS["general-v1"].hash)
-        self.assertNotEqual(BENCHMARKS["general-v1"].hash, BENCHMARKS["classic-v1"].hash)
+        self.assertNotEqual(get_benchmark("general-v1").hash, get_benchmark("classic-v1").hash)
         code, d = invoke(["bench", "list"])
         self.assertEqual((code, d["schema"]), (0, "rsi/bench-list@1"))
-        self.assertIn("general-v1", [b["id"] for b in d["result"]["benchmarks"]])
+        self.assertIn("featherbench-general-v1", [b["id"] for b in d["result"]["benchmarks"]])
         with self.assertRaises(RsiError) as cm:
             rsi.bench(benchmark="genral-v1")
         self.assertIn("general-v1", cm.exception.did_you_mean)
+
+    def test_featherbench_names_and_aliases(self):
+        # the hashes the v1 benchmarks were published with: renaming must not change them
+        published = {"general-v1": "6e9b8a2dc8a4", "classic-v1": "206e382c2dd5", "quick-v1": "33d01d26d70f"}
+        for old, h in published.items():
+            new = "featherbench-" + old
+            self.assertIs(get_benchmark(old), get_benchmark(new))
+            self.assertEqual((get_benchmark(new).id, get_benchmark(new).hash), (new, h))
+            self.assertEqual(canonical_id(old), new)
+        code, d = invoke(["featherbench", "list"])
+        self.assertEqual((code, d["schema"]), (0, "rsi/bench-list@1"))
+        r = d["result"]
+        self.assertEqual((r["name"], r["default"]), ("FeatherBench", "featherbench-general-v1"))
+        self.assertIn("FeatherBench", r["objective"])
+        self.assertEqual(r["aliases"]["quick-v1"], "featherbench-quick-v1")
+        quick = next(b for b in r["benchmarks"] if b["id"] == "featherbench-quick-v1")
+        self.assertEqual((quick["aliases"], quick["hash"]), (["quick-v1"], published["quick-v1"]))
+        code, d = invoke(["describe", "--section", "objectives"])
+        self.assertIn("bench:featherbench-general-v1", d["result"]["objectives"]["search"])
+        self.assertIn("FeatherBench", rsi.describe(section="commands")["commands"]["bench"])
 
     def test_rank_keys(self):
         rows = lambda accs, p: [{"dataset": str(i), "fresh_acc_mean": a, "n_params": p, "solved": a >= 0.9}  # noqa

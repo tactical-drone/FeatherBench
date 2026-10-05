@@ -19,7 +19,7 @@ envelope's "result") and raises RsiError (.code, .exit, .to_dict()):
     evolve(config=None, overrides=None, *, settings=None, space=None, name=None, out=None, resume=None,
            force=False, allow_code_change=False, workers=None, cache=True, store=None, parts=None,
            on_event=None, **settings_kw) -> dict                       (rsi/evolve.py: evolve(...))
-    bench(config=None, benchmark="general-v1", workers=None, submit=None, *, overrides=None, cache=True,
+    bench(config=None, benchmark="featherbench-general-v1", workers=None, submit=None, *, overrides=None, cache=True,
           store=None, parts=None, on_event=None) -> dict                (rsi/bench.py: bench(...))
     bench_rank(files, *, top=None) -> dict; bench_list() -> dict        (rsi/bench.py: rank, list_benchmarks)
     complexity(config=None, family=None, sizes=None, threshold=0.95, ladder=None, knob=None, seeds=None,

@@ -29,7 +29,7 @@ python -m rsi wait oat1 --timeout 540 && python -m rsi leaderboard oat1 --top 5
 python -m rsi export oat1 --rank 1 -o winner.json       # UI-loadable settings (+ --open)
 python -m rsi run --config winner.json                  # re-runs at the file's train.steps = meta.expect
 python -m rsi runs query --where "test_acc>=0.95" --sort -fitness --sort params
-python -m rsi bench --benchmark quick-v1 --model mlp --layers 8,8   # fewest-params benchmark
+python -m rsi bench --benchmark featherbench-quick-v1 --model mlp --layers 8,8   # FeatherBench
 ```
 
 ## 4. Lever cheat sheet (generated from `describe`; re-run it, parts change)
@@ -76,14 +76,16 @@ Numbers differ across platforms (V's Windows box: 99.6/97.5 for the default at 7
   ACTIVATIONS.register("myact", factory, doc="...")`, then `check --parts my_parts --parts agent_parts.myact
   --activation myact`, then search with the same `--parts`. The code fingerprint keeps the cache honest.
 
-## 8. The fewest-params competition (bench) and complexity
-V's standard: **whoever solves a benchmark with the fewest parameters wins** (memory and training speed).
-- `python -m rsi bench list` shows the frozen, versioned benchmarks (`general-v1`, `classic-v1`, `quick-v1`).
-- `python -m rsi bench --benchmark general-v1 [config flags] --workers 7 --submit me.json` runs the recipe on
+## 8. FeatherBench, the fewest-params competition (bench) and complexity
+V's standard, **FeatherBench: fewest params that solves every pattern wins** (memory and training speed).
+`python -m rsi featherbench ...` is the same command as `bench`.
+- `python -m rsi bench list` shows the frozen, versioned benchmarks (`featherbench-general-v1`,
+  `featherbench-classic-v1`, `featherbench-quick-v1`; the old ids `general-v1` etc. are aliases, same hashes).
+- `python -m rsi bench --benchmark featherbench-general-v1 [config flags] --workers 7 --submit me.json` runs the recipe on
   every dataset × seed (the benchmark fixes n_points/noise/split/seeds/steps) and writes a submission:
   `solved_all`, `params_max` ("a net of at most P params solves everything"), `mean_acc`, `rank_key`.
 - `python -m rsi bench rank a.json b.json ...` builds the leaderboard (solved_all, then fewest `params_max`,
-  then mean accuracy). `evolve --objective bench:general-v1` searches for the smallest solver.
+  then mean accuracy). `evolve --objective bench:featherbench-general-v1` searches for the smallest solver.
 - `python -m rsi complexity --family spiral --sizes 2-6 --model mlp --layers 8,8` steps the capacity knob up
   a ladder per size until mean fresh accuracy ≥ `--threshold`, then fits `params ~ c * k^p`: an empirical
   complexity exponent `p`. Families: spiral, checkerboard, rings, stripes, blobs (`spiral[7]` is a dataset name).

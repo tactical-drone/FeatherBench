@@ -113,7 +113,7 @@ same venv as the window (Python 3.10+). `python headless.py <command>` is the sa
     python -m rsi wait s5a --timeout 540
     python -m rsi leaderboard s5a --top 5
     python -m rsi export s5a --rank 1 -o winner.json --open     # load the winner in the window
-    python -m rsi bench --benchmark quick-v1 --model mlp --layers 8,8
+    python -m rsi bench --benchmark featherbench-quick-v1 --model mlp --layers 8,8
 
 | Command | What it does |
 |---|---|
@@ -122,7 +122,7 @@ same venv as the window (Python 3.10+). `python headless.py <command>` is the sa
 | `run` | one config over seeds x datasets, in parallel; `--map`, `--png`, `--save-settings` |
 | `sweep` | grid (`--vary`), one-at-a-time (`--oat`) or random configs, ranked |
 | `evolve` | evolutionary search with holdout seeds; resumable |
-| `bench` | the fewest-params benchmark: `bench list`, `bench --benchmark ID --submit me.json`, `bench rank FILES` |
+| `bench` | FeatherBench, the fewest-params benchmark (alias `featherbench`): `bench list`, `bench --benchmark ID --submit me.json`, `bench rank FILES` |
 | `complexity` | discovered complexity exponent over a dataset family |
 | `status`, `wait`, `stop` | follow a `--background` run |
 | `leaderboard`, `export`, `open` | best entries; a winner as a settings file; open it in the window |
@@ -135,16 +135,18 @@ Results land in `runs/` (git-ignored). Every finished cell is cached by config a
 fingerprint, so asking twice is free; editing `my_parts.py` or `nncore/` changes the
 fingerprint, so old results never mix with new code.
 
-**The fewest-params benchmark.** Whoever solves a benchmark with the fewest parameters
+**FeatherBench, the fewest-params benchmark.** Fewest params that solves every pattern
 wins, since it is all about memory and training speed. A benchmark is a frozen dataset list
-plus a fixed budget: `general-v1` is the 12 `general` datasets, 600 points, noise 0.05,
+plus a fixed budget: `featherbench-general-v1` is the 12 `general` datasets, 600 points, noise 0.05,
 seeds 0-2, 3000 steps. A dataset counts as solved when the mean accuracy over the three
 seeds on 2000 fresh points is at least 90 %. Your score is `params_max`, your net's param
 count on its biggest dataset: "a net of at most P params solves everything". `bench rank`
 sorts submissions by solved-everything, then fewest params, then mean accuracy. Published
-benchmarks never change (a fix becomes `general-v2`), and a submission records the
+benchmarks never change (a fix becomes `featherbench-general-v2`), and a submission records the
 benchmark hash, the full config, the platform and the code fingerprint, so anyone can re-run it.
-`evolve --objective bench:general-v1` searches for the smallest solver for you.
+`evolve --objective bench:featherbench-general-v1` searches for the smallest solver for you.
+`python -m rsi featherbench ...` is the same command as `bench`, and the original ids
+`general-v1`, `classic-v1` and `quick-v1` still work (same definitions, same hashes).
 
 **The complexity exponent.** Big O tells you how cost should grow; `complexity` measures
 it. Pick a family with a size knob (`spiral` arms, `checkerboard` cells, `rings`,

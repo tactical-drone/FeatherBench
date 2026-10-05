@@ -41,7 +41,8 @@ COMMAND_HELP = {
     "run": "train one config over seeds x datasets (cached cells)",
     "sweep": "grid (--vary), one-at-a-time (--oat) or random (--random --space) over configs",
     "evolve": "evolutionary search over the levers (resumable, background)",
-    "bench": "fewest-params benchmark: run a recipe on a frozen suite, rank submissions (list|rank)",
+    "bench": "FeatherBench, the fewest-params benchmark (fewest params that solves every pattern wins): "
+             "run a recipe on a frozen suite, rank submissions (list|rank); alias: featherbench",
     "complexity": "empirical complexity exponent: smallest solving capacity per dataset-family size",
     "status": "status of a background run dir", "wait": "block until a run dir is no longer running",
     "stop": "ask a run to stop (STOP file), optionally wait", "leaderboard": "ranked entries of run dirs",
@@ -822,7 +823,7 @@ def evolve(config=None, overrides=None, *, settings=None, space=None, name=None,
                       parts=parts, on_event=on_event, **settings_kw)
 
 
-def bench(config=None, benchmark="general-v1", workers=None, submit=None, *, overrides=None, steps=None, cache=True,
+def bench(config=None, benchmark="featherbench-general-v1", workers=None, submit=None, *, overrides=None, steps=None, cache=True,
           store=None, parts=None, on_event=None):
     return optional_module("bench").bench(config, benchmark, workers, submit, overrides=overrides, steps=steps,
                                           cache=cache, store=store, parts=parts, on_event=on_event)

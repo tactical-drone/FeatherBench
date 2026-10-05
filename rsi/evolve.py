@@ -14,7 +14,7 @@ generation), leaderboard.json, best.settings.json and genomes/<id>.json.
 At the end the top genomes are re-scored on disjoint holdout seeds.
 
 Objectives: scalar (default), pareto (NSGA-II on accuracy vs log2 params) and
-bench:<id> (fewest params that solve the benchmark; see rsi/bench.py).
+bench:<id> (FeatherBench: fewest params that solve the benchmark; see rsi/bench.py).
 
 Part of nn-playground. AGPL-3.0; for other licensing see COMMERCIAL.md.
 """

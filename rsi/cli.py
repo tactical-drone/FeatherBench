@@ -223,11 +223,13 @@ def build_parser():
     p.add_argument("--allow-code-change", action="store_true",
                    help="with --resume: accept edited code (the elites are re-evaluated)")
 
-    p = sub.add_parser("bench", help="fewest-params benchmark: bench [list | rank FILE... | --benchmark ID]")
+    p = sub.add_parser("bench", help="FeatherBench (fewest params wins): bench [list | rank FILE... | --benchmark ID]; "
+                                     "alias: featherbench")
     p.add_argument("action", nargs="?", help="list | rank (omit to run a benchmark)")
     p.add_argument("files", nargs="*")
     add_config_flags(p)
-    p.add_argument("--benchmark", default="general-v1")
+    p.add_argument("--benchmark", default="featherbench-general-v1",
+                   help="FeatherBench id (general-v1 / classic-v1 / quick-v1 still accepted)")
     p.add_argument("--workers", type=int)
     p.add_argument("--submit", metavar="FILE")
     p.add_argument("--steps", type=int, help="override the benchmark's steps (an unofficial result)")
@@ -364,7 +366,7 @@ EVOLVE_FLAGS = [  # section 6.9; None = the EvolveSettings default (named in the
     ("--time-penalty", _f(type=float, help="score -= t * seconds per 1000 steps (default 0)")),
     ("--success-threshold", _f(type=float, help="accuracy counted as success in success_rate (default 0.9)")),
     ("--objective", _f(help="scalar | pareto | bench:<id> (default scalar; bench:<id> = fewest params that "
-                            "solve the benchmark, see bench list)")),
+                            "solve the FeatherBench benchmark, see bench list; old ids accepted)")),
     ("--fidelity", _f(help="S1,S2: train every genome S1 steps, the top third S2 (default off)")),
     ("--gp-activations", _f(action="store_true", default=None, help="also evolve gp: expression activations")),
     ("--gp-max-depth", _f(type=int, help="GP tree depth (default 4)")),
@@ -677,6 +679,8 @@ def main(argv=None, *, out=None, stdin=None):
         out = io.install_guard()
     stdin = stdin if stdin is not None else sys.stdin
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "featherbench":  # the benchmark's name works as a command too
+        argv[0] = "bench"
     t0 = time.perf_counter()
     g = {"format": "json", "pretty": False, "unicode": False}
     command, schema, warnings = (argv[0] if argv and not argv[0].startswith("-") else None), "rsi/error@1", []
