@@ -1,5 +1,8 @@
 <!-- Part of nn-playground. AGPL-3.0; for other licensing see COMMERCIAL.md. -->
 
+<!-- FeatherBench attempt? Add only featherbench/submissions/<your GitHub username>.json,
+     keep the licence grant below, and skip the rest: CI checks and scores it. -->
+
 ## What and why
 
 <!-- One idea per PR. What changed, and why. -->

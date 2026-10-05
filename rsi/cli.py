@@ -27,6 +27,7 @@ SCHEMAS = {"describe": "rsi/describe@1", "schema": "rsi/schema@1", "check": "rsi
            "runs list": "rsi/runs@1", "runs query": "rsi/query@1", "runs show": "rsi/trial@1",
            "runs stats": "rsi/stats@1", "replay": "rsi/replay@1", "doctor": "rsi/doctor@1", "gp check": "rsi/gp-check@1",
            "bench": "rsi/bench@1", "bench list": "rsi/bench-list@1", "bench rank": "rsi/bench-leaderboard@1",
+           "bench leaderboard": "featherbench/leaderboard@1",
            "complexity": "rsi/complexity@1"}
 GLOBAL_VALUE = ("--format", "--log", "--parts", "--store")
 GLOBAL_FLAG = ("--pretty", "--unicode", "--no-cache", "--full")
@@ -225,7 +226,7 @@ def build_parser():
 
     p = sub.add_parser("bench", help="FeatherBench (fewest params wins): bench [list | rank FILE... | --benchmark ID]; "
                                      "alias: featherbench")
-    p.add_argument("action", nargs="?", help="list | rank (omit to run a benchmark)")
+    p.add_argument("action", nargs="?", help="list | rank | verify | leaderboard (omit to run a benchmark)")
     p.add_argument("files", nargs="*")
     add_config_flags(p)
     p.add_argument("--benchmark", default="featherbench-general-v1",
@@ -234,6 +235,10 @@ def build_parser():
     p.add_argument("--submit", metavar="FILE")
     p.add_argument("--steps", type=int, help="override the benchmark's steps (an unofficial result)")
     p.add_argument("--top", type=int)
+    p.add_argument("--github", help="verify: the pull request author (the file must be named <github>.json)")
+    p.add_argument("--result-out", metavar="FILE", help="verify: write the CI result doc here")
+    p.add_argument("--results", metavar="DIR", help="leaderboard: CI result docs (default featherbench/results)")
+    p.add_argument("--board-out", metavar="FILE", help="leaderboard: output (default featherbench/leaderboard.json)")
 
     p = sub.add_parser("complexity", help="empirical complexity exponent over a dataset family")
     add_config_flags(p)
@@ -558,8 +563,19 @@ def dispatch(a, g, argv, stdin, out):
             if not a.files:
                 raise RsiError("bench rank needs submission files", "E_USAGE")
             return "bench rank", SCHEMAS["bench rank"], api.bench_rank(a.files, top=a.top)
+        if a.action == "verify":
+            if len(a.files) != 1:
+                raise RsiError("featherbench verify needs exactly one submission file", "E_USAGE")
+            from . import featherbench as fb
+            return "bench", SCHEMAS["bench"], fb.verify(a.files[0], github=a.github, benchmark=a.benchmark,
+                                                         workers=a.workers, out=a.result_out, on_event=log)
+        if a.action == "leaderboard":
+            from . import featherbench as fb
+            return "bench leaderboard", SCHEMAS["bench leaderboard"], fb.leaderboard(
+                a.results or fb.RESULTS, a.board_out or fb.LEADERBOARD, benchmark=a.benchmark, top=a.top)
         if a.action is not None:
-            raise RsiError(f"bench {a.action!r}: use list, rank FILE..., or flags only to run", "E_USAGE")
+            raise RsiError(f"bench {a.action!r}: use list, rank FILE..., verify FILE, leaderboard, "
+                           "or flags only to run", "E_USAGE")
         api.setup_parts(parts)
         src, ov = config_sources(a, stdin)
         return cmd, SCHEMAS[cmd], api.bench(src, a.benchmark, a.workers, a.submit, overrides=ov, steps=a.steps, cache=cache,

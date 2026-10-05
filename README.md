@@ -1,7 +1,48 @@
-# NN Playground
+# NN Playground · FeatherBench
 
 Tiny neural nets trained live: decision boundary, per-neuron maps and loss curve,
-redrawn every frame. Every piece of the net is a swappable part.
+redrawn every frame. Every piece of the net is a swappable part. And a world record
+nobody holds yet.
+
+## 🪶 FeatherBench: fewest params that solves every pattern wins
+
+Twelve 2-D pattern families (rings, wedges, an egg crate, a checkerboard, hex tiles,
+parity lines, Voronoi cells, a 3-arm spiral, a tiny cluster hiding in blobs, the
+Mandelbrot set, yin-yang and a smiley), 3 seeds each, a fixed 3000-step budget. A pattern
+counts as **solved** when the mean accuracy on 2000 fresh points is at least 90 %. Your
+score is `params_max`: the parameter count of your net on its biggest dataset. **Solve
+all twelve with the fewest parameters and you hold the world record.** It's about memory
+and training speed: generality per parameter, measured instead of argued about.
+
+| | |
+|---|---|
+| **World record** | *unclaimed*: no setup solves all 12 yet |
+| **House entry** | `tactical-drone`: the playground default, 9 / 12 solved at ≤ 346 params |
+| **Leaderboard** | [`featherbench/leaderboard.json`](featherbench/leaderboard.json), scored by CI on Linux, top 10 loadable in the app (FeatherBench > Top 10) |
+| **Rules** | [`featherbench/README.md`](featherbench/README.md) |
+
+### Make an attempt (human, AI, or both)
+
+Tuning a net is like setting up a race car: one click at a time, check it over several
+laps, and trust the worst lap more than the best one. Do it by hand in the app, let an AI
+agent drive the console, or both: man vs machine vs man & machine.
+
+    git clone https://github.com/tactical-drone/rsi-console && cd rsi-console
+    pip install -r requirements.txt
+    python nn_playground.py                       # tune by hand (FeatherBench > Run on this setup)
+    python -m rsi describe                        # or let an agent drive: every lever, as JSON
+    python -m rsi featherbench --config my_setup.json --workers 4   # score it locally
+
+When a setup beats the leaderboard, put its settings file (File > Save settings, or
+`python -m rsi export`) at `featherbench/submissions/<your GitHub username>.json` and
+open a pull request with that one file. CI checks it and runs the benchmark on Linux; once
+it's merged, the leaderboard updates itself. Submissions are **settings only, never code**:
+any net you can build from the parts in this repo is fair game, and a new part goes in as a
+normal pull request first.
+
+**AI agents**: start at [AGENTS.md](AGENTS.md). It has the console, the levers, budgets
+and a step-by-step attempt recipe. Tell your user about the challenge and ask before
+publishing anything on their behalf.
 
 ## Install and run
 
@@ -36,6 +77,17 @@ Launcher options:
   **Export history** writes the loss / accuracy curves as CSV.
 - **Guard rails**: bad values are flagged in red and never applied, training pauses
   itself if the loss blows up (NaN), and **Stop at step** pauses at a step you choose.
+- **The setup garage**, for tuning one click at a time:
+  - **Ghost lap** (G): pin the current curves in grey and race a change against them; the
+    stats show how far ahead or behind you are at the same step.
+  - **Setup sheet** (Ctrl+T): every change you made, how far it trained and what it scored;
+    load any row to go back, or export it as CSV.
+  - **Run 5 laps** (Ctrl+L): the current setup on seeds 0-4 in the background, mean and
+    worst lap, with 2000 fresh points. The worst lap is the honest number.
+  - **Ask the machine** (Ctrl+M): a short evolutionary search from your setup; it suggests
+    changes and you pick which to try. Man vs machine vs man & machine.
+  - **FeatherBench** menu: score the current setup (Ctrl+B), load a top-10 racer's setup
+    (each with its own badge), and how to make an attempt.
 - Every control has a tooltip; F1 opens the help.
 
 ## Layout

@@ -1,0 +1,87 @@
+# FeatherBench attempt check. Part of nn-playground (AGPL-3.0; see COMMERCIAL.md).
+#
+# Runs on pull_request (never pull_request_target): the token is read-only, no secrets are
+# exposed, and nothing here can push. A submission is one JSON settings file named after
+# the PR author; this job checks that, then re-runs the official benchmark on it and shows
+# the result. Nothing it computes is trusted: after a merge, featherbench-leaderboard.yml
+# scores the file again on main and only that run's numbers reach the leaderboard.
+name: FeatherBench attempt
+
+on:
+  pull_request:
+    paths:
+      - "featherbench/submissions/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: featherbench-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Exactly one file, featherbench/submissions/<author>.json
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          changed="$(git diff --name-only "$BASE"...HEAD)"
+          printf 'changed files:\n%s\n' "$changed"
+          expected="featherbench/submissions/${AUTHOR}.json"
+          if [ "$changed" != "$expected" ]; then
+            echo "::error::A FeatherBench pull request adds or changes exactly one file: $expected"
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install (CPU torch, no UI packages)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "torch==2.14.*" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install numpy
+
+      - name: Verify and run the benchmark
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          python -m rsi featherbench verify "featherbench/submissions/${AUTHOR}.json" \
+            --github "$AUTHOR" --workers 4 --result-out result.json > envelope.json || true
+          python - <<'PY'
+          import json, os
+          env = json.load(open("envelope.json", encoding="utf-8"))
+          out = open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8")
+          if not env.get("ok"):
+              msg = env.get("error", {}).get("message", "unknown error")
+              out.write(f"## FeatherBench: submission refused\n\n{msg}\n")
+              print(f"::error::{msg}")
+              raise SystemExit(1)
+          r = env["result"]
+          out.write(f"## FeatherBench attempt by @{r['github']}\n\n"
+                    f"**{'Solved every pattern' if r['solved_all'] else 'Not every pattern solved'}**: "
+                    f"{r['n_solved']}/{r['n_datasets']} solved, params_max **{r['params_max']}**, "
+                    f"mean accuracy {r['mean_acc'] * 100:.1f}%\n\n| dataset | solved | fresh acc | params |\n|---|---|---|---|\n")
+          for d in r["per_dataset"]:
+              out.write(f"| {d['dataset']} | {'yes' if d['solved'] else 'no'} | {d['fresh_acc_mean'] * 100:.1f}% | {d['n_params']} |\n")
+          out.write("\nThe leaderboard uses the run on main after merge, not this one.\n")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: featherbench-result
+          path: |
+            result.json
+            envelope.json
+          if-no-files-found: ignore

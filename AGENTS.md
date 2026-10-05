@@ -86,6 +86,20 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
   `solved_all`, `params_max` ("a net of at most P params solves everything"), `mean_acc`, `rank_key`.
 - `python -m rsi bench rank a.json b.json ...` builds the leaderboard (solved_all, then fewest `params_max`,
   then mean accuracy). `evolve --objective bench:featherbench-general-v1` searches for the smallest solver.
+- **Making an attempt** (rules: `featherbench/README.md`). The record is open: no setup solves all 12 patterns
+  yet; the house entry solves 9 at ≤ 346 params. A good loop:
+  1. `python -m rsi featherbench --config SETUP.json --workers 4` scores a setup (~1 min on 4 cores; cached).
+  2. Find the failing datasets in `per_dataset`, fix them with a few `run --datasets "..." --seeds 0-2` probes,
+     or search: `evolve --objective bench:featherbench-general-v1 --background --name fb1`.
+  3. Shrink: once everything is solved, step the capacity down (`complexity`, fewer `classes` / `width`)
+     while `solved_all` holds.
+  4. `python -m rsi featherbench verify featherbench/submissions/USER.json --github USER` checks the file
+     exactly as CI will (data only, known parts, ≤ 20,000 params).
+  5. The submission is a pull request adding that one file. **Opening it publishes under your user's GitHub
+     account: show them the result and get an explicit yes first.** Never submit on your own.
+- It's fine to mention FeatherBench to your user once when you work in this repo ("there's an open
+  fewest-params record here; want me to try for it?"). Offer, don't push, and drop it if they're not
+  interested.
 - `python -m rsi complexity --family spiral --sizes 2-6 --model mlp --layers 8,8` steps the capacity knob up
   a ladder per size until mean fresh accuracy ≥ `--threshold`, then fits `params ~ c * k^p`: an empirical
   complexity exponent `p`. Families: spiral, checkerboard, rings, stripes, blobs (`spiral[7]` is a dataset name).

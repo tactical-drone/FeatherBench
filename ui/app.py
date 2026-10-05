@@ -6,6 +6,7 @@ without touching this file.
 """
 import json
 import math
+import os
 import sys
 import time
 import traceback
@@ -23,7 +24,7 @@ from nncore import (ACTIVATIONS, DATASETS, FEATURES, INITIALIZERS, LAYERS, LOSSE
                     Session, parse_layers)
 from nncore.registry import REPO_ROOT
 
-from . import theme
+from . import garage, theme
 from .painters import BOUNDARY_PAINTERS, NEURON_PAINTERS, make_grid
 
 VERSION = nncore.__version__
@@ -123,6 +124,11 @@ decision boundary, the neurons and the loss evolve.</p>
 <tr><td><b>F12</b></td><td>save a screenshot</td></tr>
 <tr><td><b>Ctrl+Shift+S</b></td><td>save the trained model (.pt)</td></tr>
 <tr><td><b>F11</b></td><td>full screen</td></tr>
+<tr><td><b>G</b></td><td>pin the current run as a ghost lap (grey curves to beat)</td></tr>
+<tr><td><b>Ctrl+T</b></td><td>setup sheet: every change and what it scored</td></tr>
+<tr><td><b>Ctrl+L</b></td><td>run 5 laps: this setup on seeds 0-4, mean and worst</td></tr>
+<tr><td><b>Ctrl+M</b></td><td>ask the machine: a short search from your setup, as suggested changes</td></tr>
+<tr><td><b>Ctrl+B</b></td><td>run FeatherBench on this setup</td></tr>
 <tr><td><b>Ctrl+D</b></td><td>restore the default settings</td></tr>
 <tr><td><b>F1</b></td><td>this help</td></tr>
 </table>
@@ -137,6 +143,11 @@ responds to across the plane.</li>
 falls, the net is overfitting. <b>Accuracy</b> tab: the same for accuracy.
 <b>Activation</b> tab: the last activation you picked, with its slope f'(x) dashed.</li>
 </ul>
+<h4>The setup garage</h4>
+<p>Tune like a race car: one click at a time, then check it over several laps (seeds). Pin a
+<b>ghost lap</b> before a change to see whether the change is really faster. The <b>setup sheet</b>
+keeps every stint. <b>Ask the machine</b> searches around your setup and suggests changes; you
+decide which to take. Man vs machine vs man &amp; machine.</p>
 <p>Hover any control for a short explanation. Greyed-out controls don't apply to the
 current model. Drop a settings .json on the window to load it. Your settings are remembered between runs (start with <code>--fresh</code>
 to skip that). Add your own parts in <code>my_parts.py</code>.</p>
@@ -182,6 +193,11 @@ class Playground(QtWidgets.QMainWindow):
         self.train_acc, self.test_acc = GrowBuf(), GrowBuf()
         self.thumbs = []
         self.invalid = []
+        self.sheet = garage.SetupSheet()
+        self.ghost = None  # pinned curves: dict of arrays + label
+        self.job = None  # one garage job (laps / machine / bench) at a time
+        self.machine_budget = dict(pop=12, generations=6, steps=2000)  # "ask the machine": a few minutes
+        self._dialogs = []  # keep modeless dialogs alive
 
         note = None
         if cfg is None and restore:
@@ -197,6 +213,7 @@ class Playground(QtWidgets.QMainWindow):
         self._update_enabled()
         self._set_grid()
         self._on_rebuilt("data")
+        self.sheet.start(configio.config_to_dict(self.session.cfg), "start")
         self.statusBar().showMessage(note or "Ready. Press Space to train, F1 for help.", 10000)
 
         self.timer = QtCore.QTimer(self)
@@ -367,6 +384,9 @@ class Playground(QtWidgets.QMainWindow):
         self.lb_stats.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
         form.addRow(self.lb_stats)
 
+        self.lb_job = QtWidgets.QLabel()
+        self.lb_job.setStyleSheet(theme.JOB_STYLE)
+        self.statusBar().addPermanentWidget(self.lb_job)
         self.lb_state = QtWidgets.QLabel()
         self.statusBar().addPermanentWidget(self.lb_state)
         self._show_state()
@@ -418,6 +438,10 @@ class Playground(QtWidgets.QMainWindow):
         self.p_acc, (self.c_acc_train, self.c_acc_test) = curve_plot(
             "accuracy % (train cyan, test magenta)", False)
         self.p_acc.setYRange(0, 101, padding=0)
+        ghost_pen = lambda style: pg.mkPen(theme.GHOST_PEN, width=1.5, style=style)  # noqa: E731
+        solid, dash = QtCore.Qt.PenStyle.SolidLine, QtCore.Qt.PenStyle.DashLine
+        self.g_loss = [self.p_loss.plot(pen=ghost_pen(st)) for st in (solid, dash)]  # train, test
+        self.g_acc = [self.p_acc.plot(pen=ghost_pen(st)) for st in (solid, dash)]
         self.p_acc.enableAutoRange(axis="y", enable=False)
 
         # activation preview: shows whichever activation dropdown was changed last
@@ -480,16 +504,30 @@ class Playground(QtWidgets.QMainWindow):
         action(m, "&Reset weights", self.reset_weights, "R", "Fresh weights, same data")
         action(m, "&New data", self.reseed, "N", "New random seed for data and weights")
         m.addSeparator()
+        action(m, "Pin &ghost lap", self.pin_ghost, "G", "Keep the current curves in grey as the run to beat")
+        action(m, "Clear ghost lap", self.clear_ghost, "Shift+G")
+        action(m, "Run 5 &laps (seeds 0-4)…", self.run_laps, "Ctrl+L",
+               "Train this setup on seeds 0-4 in the background: the mean and the worst lap")
+        action(m, "Ask the &machine…", self.ask_machine, "Ctrl+M",
+               "A short evolutionary search starting from your setup; it suggests changes")
+        m.addSeparator()
         action(m, "Restore &defaults", self.restore_defaults, "Ctrl+D",
                "Back to the default settings")
 
         m = mb.addMenu("&View")
+        action(m, "Setup s&heet…", self.show_sheet, "Ctrl+T", "Every change you made and what it scored")
         action(m, "&Full screen", self.toggle_fullscreen, "F11")
 
         m = mb.addMenu("Re&cipes")
         for name, overrides in RECIPES:
             action(m, name, lambda name=name, o=overrides: self.load_recipe(name, o),
                    tip="Load this ready-made experiment")
+
+        m = mb.addMenu("Feather&Bench")
+        action(m, "&Top 10 setups…", self.show_leaderboard, tip="Load a FeatherBench racer's setup")
+        action(m, "&Run FeatherBench on this setup…", self.run_featherbench, "Ctrl+B",
+               "Fewest params that solves every pattern wins: score this setup")
+        action(m, "&How to make an attempt…", self.show_attempt)
 
         m = mb.addMenu("&Help")
         action(m, "&Help", self.show_help, "F1")
@@ -625,6 +663,7 @@ class Playground(QtWidgets.QMainWindow):
             self.le_layers.setToolTip(str(e))
             self.statusBar().showMessage(f"Hidden layers: {e}", 8000)
             return
+        prev = configio.config_to_dict(self.session.cfg)
         try:
             level = self.session.configure(**cfg)
         except Exception as e:  # a bad part or combination: keep the old model running
@@ -636,17 +675,20 @@ class Playground(QtWidgets.QMainWindow):
                 self._set_widgets(self.session.cfg)
             self.statusBar().showMessage(f"Could not apply that setting: {e}", 10000)
             return
+        self._new_stint(prev)
         if level:
             self._on_rebuilt(level)
 
     def _apply_config(self, cfg, what):
         """Replace every setting (load / defaults / recipe) with Config cfg, then show it in
         the widgets. Transactional: on error the running experiment is untouched."""
+        prev = configio.config_to_dict(self.session.cfg)
         try:
             self.session.replace_config(cfg)
         except Exception as e:
             self.statusBar().showMessage(f"Could not {what}: {e}", 10000)
             return False
+        self._new_stint(prev, what)
         self._set_widgets(self.session.cfg)
         self._on_rebuilt("data")
         return True
@@ -833,6 +875,18 @@ class Playground(QtWidgets.QMainWindow):
                     layer=self.cb_layer_view.currentText(), tab=self.tabbar.currentIndex())
 
     def closeEvent(self, event):
+        if self.job is not None and self.job.isRunning():
+            ans = QtWidgets.QMessageBox.question(
+                self, "Garage job running", f"{self.job.title} is still running. Quit anyway? "
+                "(Finished cells are cached, so running it again later is quick.)")
+            if ans != QtWidgets.QMessageBox.StandardButton.Yes:
+                event.ignore()
+                return
+            self.pause()
+            try:
+                self.save_state()
+            finally:
+                os._exit(0)  # the job's thread can't be stopped from here; finished cells are cached
         self.pause()
         try:
             self.save_state()
@@ -843,6 +897,7 @@ class Playground(QtWidgets.QMainWindow):
     # ---------------------------------------------------------------- rebuilding
     def reset_weights(self):
         self.session.reset_model()
+        self.sheet.start(configio.config_to_dict(self.session.cfg), "reset weights")
         self._on_rebuilt("model")
 
     def reseed(self):
@@ -953,6 +1008,135 @@ class Playground(QtWidgets.QMainWindow):
         self.statusBar().showMessage(f"x {x:+.2f}   y {y:+.2f}   →   class {k} ({colour}), "
                                      f"{p[k].item() * 100:.0f}% sure", 4000)
 
+    # ---------------------------------------------------------------- setup garage
+    def _new_stint(self, prev, what=None):
+        new = configio.config_to_dict(self.session.cfg)
+        change = garage.describe_change(new, prev)
+        if change != "same setup" or what:
+            self.sheet.start(new, change if change != "same setup" else what)
+
+    def _load_setup(self, config, label):
+        """Apply a settings dict from the sheet, the machine or the leaderboard."""
+        try:
+            cfg = configio.config_from_dict(config, strict=False)[0]
+        except Exception as e:
+            self.statusBar().showMessage(f"Could not load {label}: {e}", 10000)
+            return
+        if self._apply_config(cfg, f"load {label}"):
+            self.statusBar().showMessage(f"Loaded {label}. Press Space to train it.", 8000)
+
+    def pin_ghost(self):
+        if self.hist_x.n < 2:
+            self.statusBar().showMessage("Train a little first: the ghost lap needs a curve.", 6000)
+            return
+        self.ghost = {"x": self.hist_x.view().copy(), "loss": (self.train_hist.view().copy(), self.test_hist.view().copy()),
+                      "acc": (self.train_acc.view().copy(), self.test_acc.view().copy()),
+                      "label": self.sheet.rows[-1]["change"] if self.sheet.rows else "ghost"}
+        for curves, key in ((self.g_loss, "loss"), (self.g_acc, "acc")):
+            for c, y in zip(curves, self.ghost[key]):
+                c.setData(self.ghost["x"], y)
+        self.statusBar().showMessage(f"Ghost lap pinned at step {int(self.ghost['x'][-1])}. Change one thing, "
+                                     "press R or retrain, and race it.", 8000)
+        self.render(record=False)
+
+    def clear_ghost(self):
+        self.ghost = None
+        for c in self.g_loss + self.g_acc:
+            c.setData([], [])
+        self.render(record=False)
+
+    def _ghost_line(self, step, acc):
+        """'  ghost 93.3% (+1.7)' at the same step, while the ghost has a value there."""
+        g = self.ghost
+        if g is None or acc is None or acc != acc or not len(g["x"]) or step > g["x"][-1]:
+            return ""
+        ga = float(np.interp(step, g["x"], g["acc"][1])) / 100
+        if ga != ga:
+            return ""
+        return f"\nghost   test {ga * 100:5.1f}% at this step   you {(acc - ga) * 100:+.1f}"
+
+    def show_sheet(self):
+        self._dialogs.append(garage.SetupSheetDialog(self.sheet, self._load_setup, self))
+        self._dialogs[-1].show()
+
+    def _workers(self):
+        return max(1, min(5, (os.cpu_count() or 2) - 1))
+
+    def _start_job(self, title, fn, on_done):
+        if self.job is not None and self.job.isRunning():
+            self.statusBar().showMessage(f"Busy with {self.job.title}; one garage job at a time.", 6000)
+            return
+        job = garage.Job(title, fn, self)
+        job.progress.connect(lambda text: self.lb_job.setText(f"⚙ {title}: {text}"))
+        job.finished_ok.connect(lambda res: (self.lb_job.setText(""), on_done(res)))
+        job.failed.connect(lambda err: (self.lb_job.setText(""),
+                                        self.statusBar().showMessage(f"{title} failed: {err}", 15000)))
+        self.job = job
+        self.lb_job.setText(f"⚙ {title}: starting…")
+        job.start()
+
+    def run_laps(self):
+        default = max(1000, self.session.step_count or 3000)
+        steps, ok = QtWidgets.QInputDialog.getInt(self, "Run 5 laps", "Steps per lap (seeds 0-4):",
+                                                  min(default, 100000), 100, 100000, 500)
+        if not ok:
+            return
+        cfg = configio.config_to_dict(self.session.cfg)
+        workers = self._workers()
+
+        def fn(progress):
+            import rsi
+            ev = lambda event, **f: progress(f"lap {f.get('i', 0) + 1}/{f.get('n', 5)}") if event == "cell" else None  # noqa: E731
+            return rsi.run(config=cfg, steps=steps, seeds="0-4", fresh_points=2000, workers=workers, on_event=ev)
+
+        def done(res):
+            sm = res.get("summary") or {}
+            ta = sm.get("test_acc") or {}
+            for r in reversed(self.sheet.rows):  # the stint this setup belongs to
+                if r["config"] == cfg:
+                    r["laps"] = {"mean": ta.get("mean"), "min": ta.get("min"), "steps": steps}
+                    break
+            self._dialogs.append(garage.laps_dialog(self, res, steps))
+        self._start_job("5 laps", fn, done)
+
+    def ask_machine(self):
+        cfg = configio.config_to_dict(self.session.cfg)
+        workers, name = self._workers(), time.strftime("garage-%Y%m%d-%H%M%S")
+        budget = dict(self.machine_budget)
+        gens = budget["generations"]
+
+        def fn(progress):
+            import rsi
+
+            def ev(event, **f):
+                if event == "generation":
+                    progress(f"generation {f.get('generation', 0) + 1}/{gens}, best {f.get('best') or 0:.3f}")
+                elif event == "holdout":
+                    progress("checking the best on unseen seeds")
+            return rsi.evolve(config=cfg, name=name, seeds=[0, 1], max_seeds=2, **budget, holdout_seeds=[1000, 1001, 1002], holdout_top=4, init="base",
+                              freeze=["model"], workers=workers, on_event=ev)
+
+        self.statusBar().showMessage("The machine is searching around your setup (about a few minutes); "
+                                     "keep driving meanwhile.", 8000)
+        self._start_job("the machine", fn,
+                        lambda lb: self._dialogs.append(garage.suggestions_dialog(self, lb, cfg, self._load_setup)))
+
+    def run_featherbench(self):
+        cfg = configio.config_to_dict(self.session.cfg)
+        workers = self._workers()
+
+        def fn(progress):
+            import rsi
+            ev = lambda event, **f: progress(f"cell {f.get('i', 0) + 1}/{f.get('n', '?')}") if event == "cell" else None  # noqa: E731
+            return rsi.bench(config=cfg, workers=workers, on_event=ev)
+        self._start_job("FeatherBench", fn, lambda res: self._dialogs.append(garage.bench_dialog(self, res)))
+
+    def show_leaderboard(self):
+        self._dialogs.append(garage.leaderboard_dialog(self, self._load_setup))
+
+    def show_attempt(self):
+        QtWidgets.QMessageBox.information(self, "FeatherBench attempt", garage.ATTEMPT_HTML)
+
     # ---------------------------------------------------------------- loop
     def toggle(self):
         self.running = not self.running
@@ -1028,6 +1212,8 @@ class Playground(QtWidgets.QMainWindow):
             acc_te = te.get("acc", math.nan)
             if acc_te == acc_te and not acc_te <= self.best_test:  # also replaces NaN
                 self.best_test = acc_te
+            self.sheet.update(s.step_count, tr.get("acc"), te.get("acc"),
+                              None if self.best_test != self.best_test else self.best_test)
 
         logits, hidden = s.predict(self.grid, collect=True)
         r = self.grid_res
@@ -1057,6 +1243,7 @@ class Playground(QtWidgets.QMainWindow):
         best = f"   best {self.best_test * 100:.1f}%" if self.best_test == self.best_test else ""
         test_line = (f"test    loss {te['loss']:.4f}  {extra_te}{best}" if has_test
                      else "test    (no test set)")
+        test_line += self._ghost_line(s.step_count, te.get("acc"))
         self.lb_stats.setText(
             f"net     {s.describe()}\n"
             f"neurons {sum(s.hidden_sizes)}   params {s.n_params}\n"

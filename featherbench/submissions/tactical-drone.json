@@ -1,0 +1,47 @@
+{
+ "format": "nn-playground/settings",
+ "version": 1,
+ "config": {
+  "dataset": "Spiral (5 arms)",
+  "n_points": 600,
+  "noise": 0.05,
+  "splitter": "random",
+  "test_frac": 0.2,
+  "seed": 0,
+  "features": [
+   "x",
+   "y"
+  ],
+  "model": "custom nn",
+  "width": 8,
+  "classes": 5,
+  "expand": "fourier (sin)",
+  "fourier_freq": 3.0,
+  "layers": "8,8",
+  "activation": "softplus",
+  "act_decide": "gauss",
+  "act_relate": "same",
+  "act_prepare": "linear",
+  "layer": "linear",
+  "skip": "none",
+  "skip_decide": "residual (same width)",
+  "skip_relate": "same",
+  "skip_prepare": "same",
+  "init": "pytorch default",
+  "loss": "cross entropy",
+  "optimizer": "Adam",
+  "lr": 0.03,
+  "weight_decay": 1e-05,
+  "schedule": "step (÷10 every 2000)",
+  "train_step": "standard",
+  "sampler": "random (with replacement)",
+  "batch_size": 32,
+  "extra": {}
+ },
+ "train": {},
+ "ui": {},
+ "meta": {
+  "note": "house entry: the playground default (fourier + gauss + decide residual)"
+ },
+ "parts": {}
+}
