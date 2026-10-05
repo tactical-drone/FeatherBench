@@ -54,8 +54,10 @@ class Equivalence(unittest.TestCase):
         self.assertTrue(same_params(new.model, old.model))
 
     def test_default_fingerprint(self):
+        # The loss fingerprint was recorded for the fourier-gauss-v0 recipe (skip_decide "none"),
+        # like the doctor's; init and data are identical to the current default.
         with quiet():
-            s = Session(Config())
+            s = Session(Config(skip_decide="none"))
         self.assertAlmostEqual(sum(p.sum() for p in s.model.parameters()).item(), 17.098907, places=5)
         self.assertLess(abs(float(s.X_all.sum()) - 0.786433), 1e-6)
         if platform.system() != "Linux":
