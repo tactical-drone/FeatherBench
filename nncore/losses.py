@@ -21,3 +21,10 @@ def smoothed_ce(logits, y):
 @LOSSES.register("mse on softmax")
 def mse_softmax(logits, y):
     return F.mse_loss(logits.softmax(1), F.one_hot(y, logits.shape[1]).float())
+
+
+@LOSSES.register("focal (γ=2)")
+def focal(logits, y, gamma=2.0):
+    """Cross entropy scaled by (1 - p_true)^γ: easy, confident points count less."""
+    ce = F.cross_entropy(logits, y, reduction="none")
+    return ((1 - (-ce).exp()) ** gamma * ce).mean()

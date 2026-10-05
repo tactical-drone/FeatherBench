@@ -1,0 +1,22 @@
+{
+  "format": "rsi/space",
+  "version": 1,
+  "description": "mlp over the general suite (generality): python -m rsi evolve --model mlp --suite general --space examples/spaces/mlp_general.json --seeds 0-1 --max-seeds 3 --name mg",
+  "ui_safe": true,
+  "genes": {
+    "layers":       {"kind": "layers", "min_depth": 1, "max_depth": 4, "widths": [2, 3, 4, 6, 8, 12, 16, 24, 32], "act": {"exclude": ["linear"]}},
+    "activation":   {"kind": "activation", "exclude": ["linear"]},
+    "layer":        {"kind": "part", "registry": "layer", "choices": "*"},
+    "skip":         {"kind": "part", "registry": "skip", "choices": ["none", "residual (same width)", "half residual"]},
+    "features":     {"kind": "subset", "registry": "features", "min": 2, "must_include": ["x", "y"]},
+    "init":         {"kind": "part", "registry": "init", "choices": "*"},
+    "optimizer":    {"kind": "part", "registry": "optimizer", "choices": ["Adam", "AdamW", "NAdam", "RAdam"]},
+    "lr":           {"kind": "float", "low": 0.001, "high": 0.1, "log": true, "sig": 3},
+    "weight_decay": {"kind": "choice", "choices": [0, 1e-05, 0.0001]},
+    "schedule":     {"kind": "part", "registry": "schedule", "choices": "*"},
+    "batch_size":   {"kind": "ordinal", "choices": [16, 32, 64, 128, null]}
+  },
+  "frozen_by_default": ["loss", "train_step"],
+  "mutation_weights": {"layers": 2.5, "activation": 1.5, "features": 1.5},
+  "constraints": {"max_params": 3000, "max_est_seconds": 900}
+}

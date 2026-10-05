@@ -1,0 +1,22 @@
+{
+  "format": "rsi/space",
+  "version": 1,
+  "description": "the default custom nn's levers at the values a one-at-a-time triage tries (sweep --oat), for random combinations: python -m rsi sweep --random 30 --space examples/spaces/oat_default.json --seeds 0-1 --name oatmix",
+  "ui_safe": true,
+  "genes": {
+    "width":        {"kind": "ordinal", "choices": [4, 8, 16, 32, 64]},
+    "classes":      {"kind": "ordinal", "choices": [2, 3, 4, 5, 8]},
+    "expand":       {"kind": "part", "registry": "expand", "choices": "*"},
+    "fourier_freq": {"kind": "choice", "choices": [1.0, 2.0, 3.0, 5.0, 8.0], "when": {"expand": ["fourier (sin)"]}},
+    "activation":   {"kind": "activation", "exclude": ["linear"]},
+    "act_decide":   {"kind": "activation", "extra_choices": ["same"]},
+    "act_relate":   {"kind": "activation", "extra_choices": ["same"]},
+    "act_prepare":  {"kind": "activation", "extra_choices": ["same"]},
+    "lr":           {"kind": "choice", "choices": [0.001, 0.003, 0.01, 0.03, 0.1]},
+    "weight_decay": {"kind": "choice", "choices": [0, 1e-05, 0.0001, 0.001]},
+    "batch_size":   {"kind": "ordinal", "choices": [8, 16, 32, 64, 128, null]}
+  },
+  "inert": {"custom nn": ["skip"]},
+  "frozen_by_default": ["loss", "train_step"],
+  "constraints": {"max_params": 20000, "max_est_seconds": 120}
+}

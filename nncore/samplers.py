@@ -6,6 +6,9 @@ Contract:  factory(n, batch_size) -> next_batch()
   batch_size is None for full batch; otherwise already clamped to 1..n.
 The factory is re-created whenever data, model or batch settings change, so it
 may keep state (e.g. an epoch permutation).
+
+"epoch shuffle" drops the tail (drop_last): each epoch serves floor(n / bs)
+full batches and skips the n % bs points left over, which differ per epoch.
 """
 import torch
 
@@ -23,6 +26,7 @@ def with_replacement(n, bs):
 
 @SAMPLERS.register("epoch shuffle")
 def epoch_shuffle(n, bs):
+    """New permutation each epoch; the last n % bs points of each epoch are skipped."""
     if bs is None or bs >= n:
         return lambda: None
     state = {"perm": torch.randperm(n), "pos": 0}

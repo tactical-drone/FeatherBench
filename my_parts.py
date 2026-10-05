@@ -8,7 +8,6 @@ example to see it appear, then write your own. The live entries at the bottom
 """
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from nncore import (ACTIVATIONS, DATASETS, EXPANSIONS, FEATURES, make_expansion, INITIALIZERS, LAYERS, LOSSES,  # noqa: F401
                     METRICS, MODELS, OPTIMIZERS, SAMPLERS, SCHEDULES, SKIPS, TRAIN_STEPS)
@@ -38,27 +37,47 @@ from nncore import (ACTIVATIONS, DATASETS, EXPANSIONS, FEATURES, make_expansion,
 
 # --- skip connection ---------------------------------------------------------
 SKIPS.register("half residual", lambda h, x: h + 0.5 * x if h.shape == x.shape else h)
+# mlp checks at build time that a skip fits: "add" needs equal widths (readable error
+# otherwise), "concat" widens the next layer. Wide stores skip but never calls it.
 SKIPS.register("add",    lambda h, x: h + x)                   # ResNet style, your l + head(l)
 SKIPS.register("concat", lambda h, x: torch.cat([h, x], -1))   # DenseNet style
 
 # --- whole architecture ------------------------------------------------------
 # Must return a module with forward(x, collect=False), hidden_sizes, describe().
 class Wide(nn.Module):
+    """The default model ("custom nn"). Dataflow, one Linear per step:
+
+        x -> flank   = expand(x)        EXPANSIONS[expand], scale = fourier_freq
+          -> hid     (width)    + activation
+          -> head    (classes)
+          -> decide  (classes)  + act_decide
+          -> perc    (classes)
+          -> relate  (n_in)     + act_relate
+          -> prepare (classes)  + act_prepare
+          -> focus   (n_out, no bias)
+
+    Reads width, activation, expand, fourier_freq, classes, act_decide, act_relate and
+    act_prepare ("same" = activation). skip is accepted but deliberately unused: forward
+    never calls it. layers and layer are mlp fields; this model ignores them.
+    """
     def __init__(self, n_in, n_out, width, activation, skip="none", expand="linear", classes=5,
                  act_decide="same", act_relate="same", act_prepare="same", fourier_freq=3.0):
         super().__init__()
-        n_perc = classes                            # width of the head / decide / perc stage
+        n_perc = classes                            # was n_out*2
         self.flank = make_expansion(expand, n_in, scale=fourier_freq)  # factory(n_in) -> nn.Module
         n_x = self.flank(torch.zeros(1, n_in)).shape[-1]  # what hid sees: expanded width
         self.hid, self.head = nn.Linear(n_x, width), nn.Linear(width, n_perc)
         self.perc = nn.Linear(n_perc, n_perc)
         self.relate = nn.Linear(n_perc, n_in)
         self.prepare = nn.Linear(n_in, n_perc)
-        self.decide = nn.Linear(n_perc, n_perc)
+        self.decide = nn.Linear(n_perc, n_perc)        
         self.act = ACTIVATIONS.get(activation)()   # factory() -> nn.Module
         pick = lambda name: ACTIVATIONS.get(activation if name == "same" else name)()
         self.act_decide, self.act_relate, self.act_prepare = pick(act_decide), pick(act_relate), pick(act_prepare)
         self.skip = SKIPS.get(skip)                # fn(h, x) -> tensor
+        #d = n_out*2
+        #pw = self.skip(torch.zeros(1, d), torch.zeros(1, d)).shape[-1]  # concat widens perc
+        #self.focus = nn.Linear(pw, n_out, False)
         self.focus = nn.Linear(n_perc, n_out,False)
         self.width = width
         self.hidden_sizes = [n_x, width, n_perc, n_perc, n_perc, n_in, n_perc, n_out]  # one per tensor forward() collects

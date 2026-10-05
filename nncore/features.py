@@ -4,7 +4,9 @@ Compartment: FEATURES  (input feature engineering, TF-Playground style)
 Contract:  fn(x, y) -> tensor, same shape as x
   x, y are 1-D float tensors of raw point coordinates.
 The selected features are stacked into the network's input columns in the
-order they are registered.
+order given by cfg.features (not registry order; column order changes the
+numbers). 'sin x' / 'sin y' (and 'cos x' / 'cos y') use 3x / 3y, i.e. three
+waves across the plane; 'θ (atan2)' is the angle atan2(y, x) / π, in [-1, 1].
 """
 import torch
 
@@ -20,6 +22,10 @@ FEATURES.register("x·y", lambda x, y: x * y)
 FEATURES.register("sin x", lambda x, y: torch.sin(x * 3))
 FEATURES.register("sin y", lambda x, y: torch.sin(y * 3))
 FEATURES.register("r", lambda x, y: torch.sqrt(x * x + y * y + 1e-9))
+# appended (opt-in), so the default columns are unchanged
+FEATURES.register("cos x", lambda x, y: torch.cos(x * 3), doc="cos(3x)")
+FEATURES.register("cos y", lambda x, y: torch.cos(y * 3), doc="cos(3y)")
+FEATURES.register("θ (atan2)", lambda x, y: torch.atan2(y, x) / torch.pi, doc="angle atan2(y, x) / π, in [-1, 1]")
 
 
 def featurize(points, names):

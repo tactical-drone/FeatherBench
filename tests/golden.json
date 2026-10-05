@@ -1,0 +1,33 @@
+{
+ "format": "nn-playground/golden",
+ "version": 1,
+ "config": "default Config(), seed 0",
+ "steps": 7000,
+ "places": 3,
+ "entries": [
+  {
+   "system": "Windows",
+   "machine": null,
+   "torch": null,
+   "train_acc": 0.996,
+   "test_acc": 0.975,
+   "note": "V's machine: Windows 11, Python 3.14 (torch version not recorded; set it here once known)"
+  },
+  {
+   "system": "Linux",
+   "machine": "x86_64",
+   "torch": "2.14",
+   "train_acc": 0.98333,
+   "test_acc": 0.9,
+   "note": "build box, torch 2.14.1 CPU, Python 3.11; float paths diverge from Windows after ~step 100"
+  },
+  {
+   "system": "Windows",
+   "machine": "AMD64",
+   "torch": "2.14",
+   "train_acc": 0.99583,
+   "test_acc": 0.975,
+   "note": "recorded by rsi doctor --record-golden, Python 3.14.7, torch 2.14.0+cpu"
+  }
+ ]
+}

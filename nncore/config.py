@@ -19,7 +19,7 @@ class Config:
     noise: float = 0.05
     splitter: str = "random"              # SPLITTERS
     test_frac: float = 0.2
-    seed: int = 0                         # data sampling and weight init
+    seed: int = 0                         # data, split, init and batch order
 
     # model
     features: tuple = ("x", "y")          # FEATURES (one or more)
@@ -27,12 +27,12 @@ class Config:
     width: int = 8                        # width
     classes: int = 5                      # custom nn: width of the head/decide/perc stage
     expand: str = "fourier (sin)"         # EXPANSIONS (custom nn: widens x,y before hid)
-    fourier_freq: float = 3.0             # fourier expansion: spread (std) of starting frequencies
+    fourier_freq: float = 3.0             # custom nn: spread of starting frequencies for "fourier (sin)"
     layers: str = "8,8"                   # mlp: "4,4" or "8:sin,4:tanh", empty = linear
-    activation: str = "softplus"          # ACTIVATIONS (default for layers without :act)
+    activation: str = "softplus"              # ACTIVATIONS (default for layers without :act)
     act_decide: str = "gauss"             # custom nn: ACTIVATIONS for decide, "same" = activation
     act_relate: str = "same"              # custom nn: ACTIVATIONS for relate
-    act_prepare: str = "linear"           # custom nn: ACTIVATIONS for prepare
+    act_prepare: str = "linear"            # custom nn: ACTIVATIONS for prepare
     layer: str = "linear"                 # LAYERS
     skip: str = "none"                    # SKIPS
     init: str = "pytorch default"         # INITIALIZERS

@@ -4,21 +4,24 @@ Compartments: LAYERS, SKIPS and EXPANSIONS  (the building blocks an architecture
 LAYERS      factory(d_in, d_out) -> nn.Module   the weighted transform per layer
 SKIPS       fn(h, x) -> tensor                  how a layer's output h combines
                                                 with its input x (residuals etc.)
-EXPANSIONS  factory(n_in) -> nn.Module          widens the raw inputs before the
+EXPANSIONS  factory(n_in, **knobs) -> nn.Module widens the raw inputs before the
                                                 first hidden layer; output width
-                                                is whatever the module returns
+                                                is whatever the module returns.
+                                                Knobs are passed only when the
+                                                factory accepts them (by name, or
+                                                all of them for **kwargs); custom nn
+                                                passes scale=cfg.fourier_freq.
 """
-import inspect
 import math
 
 import torch
 import torch.nn as nn
 
-from .registry import Registry
+from .registry import Registry, call_accepting
 
 LAYERS = Registry("layer", "factory(d_in, d_out) -> nn.Module")
 SKIPS = Registry("skip", "fn(h, x) -> tensor")
-EXPANSIONS = Registry("expansion", "factory(n_in) -> nn.Module")
+EXPANSIONS = Registry("expansion", "factory(n_in, **knobs) -> nn.Module")
 
 LAYERS.register("linear", nn.Linear)
 LAYERS.register("linear (no bias)", lambda d_in, d_out: nn.Linear(d_in, d_out, bias=False))
@@ -44,6 +47,8 @@ EXPANSIONS.register("linear + tanh", lambda n_in: nn.Sequential(nn.Linear(n_in, 
 
 class Fourier(nn.Module):
     """sin(Wx + b): each unit is a wave with a learned direction and frequency."""
+    keep_init = True  # its weight spread is the scale knob; "(keep expansion)" inits leave it alone
+
     def __init__(self, n_in, k=16, scale=3.0):
         super().__init__()
         self.lin = nn.Linear(n_in, k)
@@ -55,9 +60,12 @@ class Fourier(nn.Module):
 
 
 class Polar(nn.Module):
-    """Fixed features: x, y, r, and spiral waves sin/cos(k·r - θ) for a few k."""
+    """Fixed features: x, y, r, and spiral waves sin/cos(k·r - θ) for a few k.
+    The first two inputs are taken as the plane (x, y), so keep x, y first in features."""
     def __init__(self, n_in, ks=(1, 2, 4)):
         super().__init__()
+        if n_in < 2:
+            raise ValueError(f"polar spiral needs the first two inputs to be the plane (x, y); got {n_in} input")
         self.register_buffer("ks", torch.tensor(ks, dtype=torch.float32))
 
     def forward(self, x):
@@ -84,12 +92,11 @@ EXPANSIONS.register("polar spiral", Polar)
 EXPANSIONS.register("rbf bumps", RBF)
 
 
-def make_expansion(name, n_in, **knobs):
-    """Build EXPANSIONS[name](n_in), passing only the knobs its factory accepts
-    (e.g. scale= for fourier), so plain factory(n_in) parts keep working."""
-    factory = EXPANSIONS.get(name)
-    try:
-        params = inspect.signature(factory).parameters
-    except (TypeError, ValueError):
-        params = {}
-    return factory(n_in, **{k: v for k, v in knobs.items() if k in params})
+def make_expansion(name, n_in, scale=None, **knobs):
+    """Build EXPANSIONS[name](n_in, ...) passing only the knobs its factory accepts
+    (all of them to a **kwargs factory), so plain factory(n_in) lambdas keep working.
+    scale (custom nn passes fourier_freq, by name or positionally) is one more knob,
+    left out when None."""
+    if scale is not None:
+        knobs["scale"] = scale
+    return call_accepting(EXPANSIONS.get(name), n_in, **knobs)

@@ -1,0 +1,112 @@
+# Changelog
+
+<!-- Part of nn-playground. AGPL-3.0; for other licensing see COMMERCIAL.md. -->
+
+Versions follow `nncore.__version__` and `rsi.__version__`. Results JSON records both,
+plus a code fingerprint, so you can tell which version produced a number.
+
+## Unreleased
+
+## 1.0.0 (date: TODO(V))
+
+The first tagged release. The default config's numbers are unchanged: the new `Session`
+is checked bit-for-bit against the old one (`tests/test_core_equivalence.py`). The
+headline 99.6 / 97.5 (default, 7000 steps) was measured on Windows 11; other platforms
+and torch versions give other numbers (Linux, torch 2.14: 98.3 / 90.0).
+
+### Core (`nncore/`)
+
+- `Session.configure` is transactional: if a change fails, data, model and optimizer stay
+  exactly as they were. It also validates part names, value types and ranges first, with
+  readable errors and did-you-mean suggestions.
+- Each session has its own torch RNG stream, so other sessions, failed configures and
+  your own `torch.rand` calls no longer shift its numbers.
+- The default model loads without `import my_parts`: registries load `my_parts` lazily on
+  a miss (`nncore.load_plugins`, env `NNCORE_PLUGINS`). `Registry.get(name, default)`
+  keeps dict semantics.
+- `Session(cfg)` copies its config instead of sharing yours. New opt-ins:
+  `configure(skip_irrelevant=, keep_optimizer_state=)`, `replace_config(cfg)`,
+  `train(stop_on_nonfinite=)` with `diverged_at`, `evaluate_fresh(n)` (accuracy on new
+  points), `evaluate(extra_metrics=)`. `evaluate`/`predict` run in eval mode;
+  `predict` takes numpy arrays.
+- Readable errors for zero points, a single class, or an empty train split.
+- New modules: `configio` (config <-> JSON, settings files shared with the UI, name
+  aliases like `x^2`, bounds, hashing), `schema` (which model reads which field, param
+  counts without touching the RNG, the `describe` catalog), `run` (`run_unit`: one
+  JSON-safe training cell, NaN -> null).
+- `nncore.__version__ = "1.0.0"`; torch threads come from `NNCORE_THREADS` (default 1).
+
+### Parts
+
+- Activations: `snake`, `cos`, `selu`, `softsign`, `hardtanh`, `prelu`, `x·sin x`.
+- Features: `cos x`, `cos y`, `θ (atan2)`.
+- Initializers: `xavier uniform (keep expansion)` and `kaiming normal (keep expansion)`
+  (leave the Fourier layer alone), `orthogonal`, `xavier normal`, `lecun normal`. The
+  original `xavier uniform` and `kaiming normal` are unchanged.
+- Optimizers `NAdam`, `RAdam`, `Adamax`, `SGD+nesterov`; loss `focal (γ=2)`; schedules
+  `cosine (over extra.total_steps)`, `cosine warm restarts (T0=1000)`,
+  `warmup 200 + constant`; train steps `skip non-finite`, `clip grad norm (extra)`.
+- Extra metrics (`bal_acc`, `macro_f1`, `worst_class_acc`, `mean_conf`, `ece`) in their own
+  registry, so the existing output is unchanged.
+- mlp: a skip that can't combine widths (`add`, `concat`) now fails at build time with a
+  readable message instead of at the first step; `concat` is sized correctly.
+- `parse_layers` errors name the bad token; `format_layers` is its inverse.
+- `make_expansion(name, n_in, scale=None, **knobs)` passes knobs to `**kw` factories.
+- `Spiral (k arms)` with fewer than k points and `test_frac` outside [0, 1) raise readable
+  errors. New parts are appended, so dropdown order is unchanged.
+
+### Datasets
+
+- A zoo of 25 new datasets (rings, bullseye, pinwheel, Voronoi, hex tiling, Mandelbrot,
+  yin-yang, imbalanced and label-noise sets, ...).
+- Suites: `classic`, `zoo`, `general`, `stretch`, `sanity`, `all` (`--suite NAME`).
+- Families with a size knob: `spiral[k]`, `checkerboard[c]`, `rings[k]`, `stripes[k]`,
+  `blobs[k]`. Use them as a dataset name anywhere; they stay out of the UI dropdown.
+
+### rsi console (new)
+
+`python -m rsi <command>` (same as `python headless.py <command>`): one JSON document on
+stdout per command, stable exit codes, errors as JSON instead of tracebacks. See AGENTS.md.
+
+- `describe`, `schema`, `check`: levers, parts, which model reads what; validate a config
+  and count its params without training.
+- `run`: one config over seeds x datasets, in parallel worker processes, with `--map` /
+  `--png` decision-boundary output and settings files the UI can load.
+- `sweep` (grid, one-at-a-time, random) and `evolve` (resumable evolutionary search with
+  holdout seeds), both with `--background`, `status`, `wait`, `stop`, `leaderboard`.
+- `bench`: the fewest-params benchmark. Frozen, versioned definitions (`general-v1`,
+  `classic-v1`, `quick-v1`), submission files, `bench rank` leaderboards, and an
+  `evolve --objective bench:<id>` search for the smallest net that solves everything.
+- `complexity`: steps a model's capacity up a ladder per family size and fits
+  `params ~ c * k^p`, an empirically discovered complexity exponent.
+- `export` / `open`: a winner as a settings file, opened in the window
+  (`nn_playground.py --load FILE`).
+- `runs list|query|show|stats` over a sqlite store of every trial; finished cells are
+  cached by config and code fingerprint, so repeats are free. `replay` re-runs a trial and
+  checks it is bit-identical; `repl` drives one live session over JSONL; `doctor` checks
+  the environment and golden numbers.
+- `agent_parts/`: where AI agents put their own parts (`--parts agent_parts.x`).
+
+### headless.py
+
+- Same output format as before. Fixed: `--report-every 0` no longer loops forever,
+  every `--compare` value is checked before anything runs, output is line-buffered when
+  piped, kebab-case flags (`--n-points`), exit codes 2 (usage) / 3 (bad config), and a
+  warning when you set a field the model doesn't read (for example `--layers` on the
+  default model).
+
+### UI
+
+- see UI notes
+
+### Docs
+
+- AGENTS.md (for AI agents), CONTRIBUTING.md (with the licence grant), this changelog,
+  a PR template, a wider `.gitignore` (includes `runs/`).
+
+### Compatibility notes
+
+- Validation is stricter: unknown part names now fail on `Session(cfg)` even for fields
+  the model doesn't read.
+- Changing `my_parts.py` (or any `nncore` file) changes the code fingerprint, so the rsi
+  cache recomputes those cells once. That is on purpose.

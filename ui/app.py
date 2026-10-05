@@ -9,7 +9,7 @@ import math
 import sys
 import time
 import traceback
-from dataclasses import fields
+from pathlib import Path
 
 import numpy as np
 import pyqtgraph as pg
@@ -17,14 +17,16 @@ import torch
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 import nncore
+from nncore import configio
 from nncore import (ACTIVATIONS, DATASETS, FEATURES, INITIALIZERS, LAYERS, LOSSES, MODELS,
                     EXPANSIONS, OPTIMIZERS, SAMPLERS, SCHEDULES, SKIPS, SPLITTERS, TRAIN_STEPS, Config,
                     Session, parse_layers)
+from nncore.registry import REPO_ROOT
 
 from . import theme
 from .painters import BOUNDARY_PAINTERS, NEURON_PAINTERS, make_grid
 
-VERSION = getattr(nncore, "__version__", "1.0.0")
+VERSION = nncore.__version__
 MAX_THUMBS = 32
 TITLE = "NN Playground // Jarvis build"
 LAYERS_TIP = "e.g. 4,4   or   8:sin,4:tanh   or empty for a linear model"
@@ -110,7 +112,7 @@ decision boundary, the neurons and the loss evolve.</p>
 <tr><td><b>R</b></td><td>reset weights (same data)</td></tr>
 <tr><td><b>N</b></td><td>new data (new random seed)</td></tr>
 <tr><td><b>Ctrl+S / Ctrl+O</b></td><td>save / load settings</td></tr>
-<tr><td><b>Ctrl+Shift+C</b></td><td>copy the current setup as a headless.py command</td></tr>
+<tr><td><b>Ctrl+Shift+C</b></td><td>copy the current setup as an rsi console command</td></tr>
 <tr><td><b>F12</b></td><td>save a screenshot</td></tr>
 <tr><td><b>Ctrl+Shift+S</b></td><td>save the trained model (.pt)</td></tr>
 <tr><td><b>F11</b></td><td>full screen</td></tr>
@@ -132,35 +134,6 @@ falls, the net is overfitting. <b>Accuracy</b> tab: the same for accuracy.
 current model. Drop a settings .json on the window to load it. Your settings are remembered between runs (start with <code>--fresh</code>
 to skip that). Add your own parts in <code>my_parts.py</code>.</p>
 """
-
-
-def clean_config(data):
-    """Loaded dict -> (values for Session.configure, dropped unknown keys)."""
-    clean = getattr(Config, "clean", None)
-    if clean is not None:
-        return clean(data)
-    known = {f.name for f in fields(Config)}
-    values = {k: v for k, v in data.items() if k in known}
-    if "features" in values:
-        values["features"] = tuple(values["features"])
-    return values, sorted(set(data) - known)
-
-
-def headless_command(cfg):
-    """The headless.py command line that reproduces cfg (only non-default fields)."""
-    base, parts = Config().to_dict(), ["python headless.py"]
-    for k, v in cfg.to_dict().items():
-        if k == "extra" or v == base[k]:
-            continue
-        if k == "features":
-            v = ",".join(v)
-        elif k == "batch_size" and v is None:
-            v = "full"
-        v = str(v)
-        if not v or any(ch in v for ch in ' "&|<>^()÷×,;'):
-            v = '"' + v.replace('"', '\\"') + '"'
-        parts.append(f"--{k} {v}")
-    return " ".join(parts)
 
 
 class GrowBuf:
@@ -477,8 +450,10 @@ class Playground(QtWidgets.QMainWindow):
         m = mb.addMenu("&File")
         action(m, "&Save settings…", self.save_settings, "Ctrl+S", "Save every setting to a .json file")
         action(m, "&Load settings…", self.load_settings, "Ctrl+O", "Load settings from a .json file")
-        action(m, "&Copy as headless command", self.copy_command, "Ctrl+Shift+C",
-               "Copy a headless.py command line that reproduces the current setup")
+        action(m, "Open search &winner…", self.open_winner, "Ctrl+W",
+               "Load the best settings from an rsi evolve / sweep run folder")
+        action(m, "&Copy as console command", self.copy_command, "Ctrl+Shift+C",
+               "Copy a 'python -m rsi run' command line that reproduces the current setup")
         action(m, "Save &screenshot…", self.save_screenshot, "F12", "Save the window as a .png")
         action(m, "Save &model…", self.save_model, "Ctrl+Shift+S",
                "Save the trained weights and the settings that built them (.pt)")
@@ -636,31 +611,40 @@ class Playground(QtWidgets.QMainWindow):
         try:
             level = self.session.configure(**cfg)
         except Exception as e:  # a bad part or combination: keep the old model running
+            w = {"lr": self.cb_lr, "weight_decay": self.cb_wd, "batch_size": self.cb_batch,
+                 "layers": self.le_layers}.get(getattr(e, "field", None))
+            if w is not None:  # out of the core's range: flag the field like a typo
+                w.setStyleSheet(theme.ERROR_STYLE)
+            else:  # a refused pick: show what is actually running again
+                self._set_widgets(self.session.cfg)
             self.statusBar().showMessage(f"Could not apply that setting: {e}", 10000)
             return
         if level:
             self._on_rebuilt(level)
 
-    def _apply_config(self, values, what):
-        """Replace every setting (load / defaults / recipe), then show it in the widgets."""
+    def _apply_config(self, cfg, what):
+        """Replace every setting (load / defaults / recipe) with Config cfg, then show it in
+        the widgets. Transactional: on error the running experiment is untouched."""
         try:
-            Session(Config(**{**self.session.cfg.to_dict(), **values}))  # dry run: fail before touching anything
-            self.session.configure(**values)
+            self.session.replace_config(cfg)
         except Exception as e:
             self.statusBar().showMessage(f"Could not {what}: {e}", 10000)
             return False
         self._set_widgets(self.session.cfg)
-        self.session.new_data()
         self._on_rebuilt("data")
         return True
 
     def restore_defaults(self):
-        if self._apply_config(Config().to_dict(), "restore the defaults"):
+        if self._apply_config(Config(), "restore the defaults"):
             self.statusBar().showMessage("Default settings restored.", 5000)
 
     def load_recipe(self, name, overrides):
-        values = {**Config().to_dict(), **overrides}
-        if self._apply_config(values, f"load the recipe '{name}'"):
+        try:
+            cfg = configio.config_from_dict(overrides, base=Config())[0]
+        except Exception as e:
+            self.statusBar().showMessage(f"Could not load the recipe '{name}': {e}", 10000)
+            return
+        if self._apply_config(cfg, f"load the recipe '{name}'"):
             self.statusBar().showMessage(f"Recipe: {name}.  Press Space to train.", 8000)
 
     def save_settings(self):
@@ -669,34 +653,54 @@ class Playground(QtWidgets.QMainWindow):
         if not path:
             return
         try:
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(self.session.cfg.to_dict(), f, indent=2, ensure_ascii=False)
-        except OSError as e:
+            configio.save_settings(path, self.session.cfg, ui=self._view_state())
+        except Exception as e:
             self.statusBar().showMessage(f"Could not save: {e}", 10000)
             return
         self.statusBar().showMessage(f"Settings saved to {path}", 6000)
 
     def load_settings(self, path=None):
+        """Load a settings file: the UI's own, an rsi best.settings.json, a trial record or an
+        old flat config. Lenient: unknown keys or parts fall back to defaults, with a note."""
         if not path:
             path, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self, "Load settings", "", "Settings (*.json)")
         if not path:
-            return
+            return False
         try:
-            with open(path, encoding="utf-8") as f:
-                data = json.load(f)
-            if not isinstance(data, dict):
-                raise ValueError("expected a JSON object of settings")
-        except (OSError, ValueError) as e:
+            st = configio.load_settings(path, strict=False)
+        except Exception as e:
             self.statusBar().showMessage(f"Could not read {path}: {e}", 10000)
+            return False
+        if not self._apply_config(st.config, "load those settings"):
+            return False
+        if st.ui:
+            self._apply_view(st.ui)
+            self._set_grid()
+        notes = [w.get("message") or w.get("code", "") for w in st.warnings
+                 if w.get("code") != "W_DEFAULT_FILLED" or w.get("field")]
+        note = f"  ({len(notes)} note(s): {'; '.join(notes[:3])})" if notes else ""
+        self.statusBar().showMessage(f"Settings loaded from {path}{note}", 12000)
+        return True
+
+    def open_winner(self, folder=None):
+        """Pick an rsi run folder (evolve / sweep) and load its best.settings.json."""
+        if not folder:
+            folder = QtWidgets.QFileDialog.getExistingDirectory(
+                self, "Open search winner (an rsi run folder)", str(REPO_ROOT / "runs"))
+        if not folder:
             return
-        values, skipped = clean_config(data)
-        if self._apply_config(values, "load those settings"):
-            note = f" (ignored unknown keys: {', '.join(skipped)})" if skipped else ""
-            self.statusBar().showMessage(f"Settings loaded from {path}{note}", 8000)
+        best = Path(folder) / "best.settings.json"
+        if not best.exists():
+            self.statusBar().showMessage(f"{folder} has no best.settings.json. Is the run finished? "
+                                         f"Try: python -m rsi export {Path(folder).name}", 12000)
+            return
+        if self.load_settings(str(best)):
+            self.statusBar().showMessage(f"Loaded the winner of {Path(folder).name}. "
+                                         "Press Space to train it.", 10000)
 
     def copy_command(self):
-        cmd = headless_command(self.session.cfg)
+        cmd = configio.config_to_command(self.session.cfg)
         QtWidgets.QApplication.clipboard().setText(cmd)
         self.statusBar().showMessage(f"Copied: {cmd}", 10000)
 
@@ -767,9 +771,8 @@ class Playground(QtWidgets.QMainWindow):
         if not raw:
             return None, None
         try:
-            values, _ = clean_config(json.loads(raw))
-            cfg = Config(**values)
-            Session(Config(**cfg.to_dict()))  # must still build (parts may have been renamed)
+            cfg = configio.load_settings(json.loads(raw), strict=False).config
+            Session(cfg)  # must still build (parts may have been renamed)
             return cfg, "Welcome back: restored your last settings (Ctrl+D for defaults)."
         except Exception as e:
             return None, f"Could not restore your last settings ({e}); using the defaults."
@@ -782,6 +785,12 @@ class Playground(QtWidgets.QMainWindow):
             view = json.loads(self.settings.value("view") or "{}")
         except ValueError:
             view = {}
+        self._apply_view(view)
+
+    def _apply_view(self, view):
+        """View options (steps / frame, grid, painters, layer, tab) from a saved dict."""
+        if not isinstance(view, dict):
+            return
         for key, w in (("steps", self.sp_steps), ("stop", self.sp_stop)):
             if isinstance(view.get(key), int):
                 w.setValue(view[key])
@@ -795,13 +804,16 @@ class Playground(QtWidgets.QMainWindow):
             self.tabbar.setCurrentIndex(view["tab"])
 
     def save_state(self):
-        self.settings.setValue("config", json.dumps(self.session.cfg.to_dict(), ensure_ascii=False))
-        self.settings.setValue("view", json.dumps(dict(
-            steps=self.sp_steps.value(), stop=self.sp_stop.value(), res=self.cb_res.currentText(),
-            boundary=self.cb_paint.currentText(), neurons=self.cb_npaint.currentText(),
-            layer=self.cb_layer_view.currentText(), tab=self.tabbar.currentIndex())))
+        self.settings.setValue("config", json.dumps(configio.config_to_dict(self.session.cfg),
+                                                    ensure_ascii=False))
+        self.settings.setValue("view", json.dumps(self._view_state()))
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.sync()
+
+    def _view_state(self):
+        return dict(steps=self.sp_steps.value(), stop=self.sp_stop.value(), res=self.cb_res.currentText(),
+                    boundary=self.cb_paint.currentText(), neurons=self.cb_npaint.currentText(),
+                    layer=self.cb_layer_view.currentText(), tab=self.tabbar.currentIndex())
 
     def closeEvent(self, event):
         self.pause()

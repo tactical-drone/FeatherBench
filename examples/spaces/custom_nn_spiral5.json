@@ -1,0 +1,24 @@
+{
+  "format": "rsi/space",
+  "version": 1,
+  "description": "custom nn only, tuned for Spiral (5 arms): python -m rsi evolve --set dataset=\"Spiral (5 arms)\" --space examples/spaces/custom_nn_spiral5.json --name s5",
+  "ui_safe": true,
+  "genes": {
+    "width":        {"kind": "ordinal", "choices": [4, 6, 8, 10, 12, 16, 24, 32]},
+    "classes":      {"kind": "ordinal", "choices": [3, 4, 5, 6, 8, 10]},
+    "expand":       {"kind": "part", "registry": "expand", "choices": ["fourier (sin)", "polar spiral", "rbf bumps", "linear + tanh"]},
+    "fourier_freq": {"kind": "float", "low": 0.5, "high": 10.0, "log": true, "quantum": 0.01, "when": {"expand": ["fourier (sin)"]}},
+    "activation":   {"kind": "activation", "exclude": ["linear"]},
+    "act_decide":   {"kind": "activation", "extra_choices": ["same"]},
+    "act_relate":   {"kind": "activation", "extra_choices": ["same"]},
+    "act_prepare":  {"kind": "activation", "extra_choices": ["same"]},
+    "init":         {"kind": "part", "registry": "init", "choices": "*"},
+    "optimizer":    {"kind": "part", "registry": "optimizer", "choices": ["Adam", "AdamW", "NAdam", "RAdam", "Adamax"]},
+    "lr":           {"kind": "float", "low": 0.001, "high": 0.1, "log": true, "sig": 3},
+    "schedule":     {"kind": "part", "registry": "schedule", "choices": "*"},
+    "batch_size":   {"kind": "ordinal", "choices": [16, 32, 64, 128]}
+  },
+  "frozen_by_default": ["loss", "train_step"],
+  "mutation_weights": {"activation": 1.5, "act_decide": 1.5, "lr": 1.5, "fourier_freq": 1.5},
+  "constraints": {"max_params": 5000, "max_est_seconds": 120}
+}

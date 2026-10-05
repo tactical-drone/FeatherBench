@@ -1,3 +1,15 @@
 __pycache__/
 *.pyc
 .venv/
+venv/
+env/
+.idea/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+# rsi console: cell cache (rsi.sqlite) and run dirs; see AGENTS.md
+runs/
+screenshots/

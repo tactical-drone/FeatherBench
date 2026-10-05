@@ -1,0 +1,31 @@
+{
+  "format": "rsi/space",
+  "version": 1,
+  "ui_safe": true,
+  "genes": {
+    "model":        {"kind": "choice", "choices": ["custom nn", "mlp"]},
+    "width":        {"kind": "ordinal", "choices": [2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64]},
+    "classes":      {"kind": "ordinal", "choices": [2, 3, 4, 5, 6, 8, 10, 12, 16]},
+    "expand":       {"kind": "part", "registry": "expand", "choices": "*"},
+    "fourier_freq": {"kind": "float", "low": 0.3, "high": 12.0, "log": true, "quantum": 0.01, "when": {"expand": ["fourier (sin)"]}},
+    "activation":   {"kind": "activation", "exclude": ["linear"]},
+    "act_decide":   {"kind": "activation", "extra_choices": ["same"]},
+    "act_relate":   {"kind": "activation", "extra_choices": ["same"]},
+    "act_prepare":  {"kind": "activation", "extra_choices": ["same"]},
+    "layers":       {"kind": "layers", "min_depth": 0, "max_depth": 5, "widths": [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64], "act": {"exclude": ["linear"]}},
+    "layer":        {"kind": "part", "registry": "layer", "choices": "*"},
+    "skip":         {"kind": "part", "registry": "skip", "choices": "*"},
+    "features":     {"kind": "subset", "registry": "features", "min": 1, "must_include": ["x", "y"]},
+    "init":         {"kind": "part", "registry": "init", "choices": "*"},
+    "optimizer":    {"kind": "part", "registry": "optimizer", "choices": "*"},
+    "lr":           {"kind": "float", "low": 0.0003, "high": 0.3, "log": true, "sig": 3},
+    "weight_decay": {"kind": "choice", "choices": [0, 1e-05, 0.0001, 0.001]},
+    "schedule":     {"kind": "part", "registry": "schedule", "choices": "*"},
+    "batch_size":   {"kind": "ordinal", "choices": [8, 16, 32, 64, 128, null]},
+    "sampler":      {"kind": "part", "registry": "sampler", "choices": "*"}
+  },
+  "inert": {"custom nn": ["skip"]},
+  "frozen_by_default": ["loss", "train_step"],
+  "mutation_weights": {"layers": 2.0, "lr": 1.5, "activation": 1.5},
+  "constraints": {"max_params": 20000, "max_est_seconds": 120}
+}
