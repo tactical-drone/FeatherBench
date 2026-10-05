@@ -127,14 +127,14 @@ def mark_transparent():  # just the feathers
 def wordmark():
     text = f"""
   <text x="300" y="118" font-family="{FONT}" font-size="76" font-weight="700" fill="{INK}" letter-spacing="1">Feather<tspan fill="{FEATHERS[2][2]}">Bench</tspan></text>
-  <text x="304" y="162" font-family="{FONT}" font-size="25" fill="{INK_DIM}" letter-spacing="0.5">fewest params that solves every pattern wins</text>"""
+  <text x="304" y="162" font-family="{FONT}" font-size="25" fill="{INK_DIM}" letter-spacing="0.5">RSI telemetry for rogue AIs on the run!</text>"""
     return svg(900, 230, feathers_group(26, 12, 1.0) + text, radius=28)
 
 
 def social():  # GitHub social preview, 1280 x 640
     text = f"""
   <text x="640" y="470" text-anchor="middle" font-family="{FONT}" font-size="104" font-weight="700" fill="{INK}" letter-spacing="2">Feather<tspan fill="{FEATHERS[2][2]}">Bench</tspan></text>
-  <text x="640" y="535" text-anchor="middle" font-family="{FONT}" font-size="36" fill="{INK_DIM}">fewest params that solves every pattern wins · the record is open</text>"""
+  <text x="640" y="535" text-anchor="middle" font-family="{FONT}" font-size="36" fill="{INK_DIM}">RSI telemetry for rogue AIs on the run!</text>"""
     return svg(1280, 640, feathers_group(490, 55, 1.45) + text)
 
 

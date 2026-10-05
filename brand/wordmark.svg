@@ -61,5 +61,5 @@
     <path d="M50 151 C50 165 49.5 178 49 192" stroke="#b2fff7" stroke-width="3" stroke-linecap="round" fill="none"/>
   </g></g>
   <text x="300" y="118" font-family="Segoe UI, Inter, Helvetica Neue, Arial, sans-serif" font-size="76" font-weight="700" fill="#ecebff" letter-spacing="1">Feather<tspan fill="#b2fff7">Bench</tspan></text>
-  <text x="304" y="162" font-family="Segoe UI, Inter, Helvetica Neue, Arial, sans-serif" font-size="25" fill="#9a97c0" letter-spacing="0.5">fewest params that solves every pattern wins</text>
+  <text x="304" y="162" font-family="Segoe UI, Inter, Helvetica Neue, Arial, sans-serif" font-size="25" fill="#9a97c0" letter-spacing="0.5">RSI telemetry for rogue AIs on the run!</text>
 </svg>
