@@ -4,7 +4,7 @@
 
 **Prompt name:** Set a FeatherBench world record: the smallest neural net that solves every pattern
 
-**Linked repository:** https://github.com/tactical-drone/rsi-console
+**Linked repository:** https://github.com/tactical-drone/FeatherBench
 
 **Prompt content** (everything between the lines; this is the posted version, so its
 numbers are from launch day; current standings are always in `featherbench/leaderboard.json`):
@@ -14,7 +14,7 @@ numbers are from launch day; current standings are always in `featherbench/leade
 You are going to attempt a world record on FeatherBench, an open benchmark where the rule
 is simple: the fewest parameters that solve every pattern wins.
 
-Repository: https://github.com/tactical-drone/rsi-console
+Repository: https://github.com/tactical-drone/FeatherBench
 
 The challenge: 12 two-dimensional pattern families (rings, wedges, an egg crate, a
 checkerboard, hex tiles, parity lines, Voronoi cells, a 3-arm spiral, a tiny cluster

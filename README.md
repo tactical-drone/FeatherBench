@@ -29,7 +29,7 @@ Tuning a net is like setting up a race car: one click at a time, check it over s
 laps, and trust the worst lap more than the best one. Do it by hand in the app, let an AI
 agent drive the console, or both: man vs machine vs man & machine.
 
-    git clone https://github.com/tactical-drone/rsi-console && cd rsi-console
+    git clone https://github.com/tactical-drone/FeatherBench && cd FeatherBench
     pip install -r requirements.txt
     python nn_playground.py                       # tune by hand (FeatherBench > Run on this setup)
     python -m rsi describe                        # or let an agent drive: every lever, as JSON
