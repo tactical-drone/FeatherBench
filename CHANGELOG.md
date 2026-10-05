@@ -14,6 +14,13 @@ plus a code fingerprint, so you can tell which version produced a number.
   `concat` widens the next layer; a stage on `same` falls back to none where the main skip
   can't span a width change; an explicit misfit is refused at build time with a readable error.
 - UI: Skip is enabled for custom nn, with skip: decide / relate / prepare dropdowns.
+- New default: a residual skip around decide (`skip_decide = "residual (same width)"`), same
+  341 params. Over seeds 0-4 at 7000 steps test accuracy goes from 80.3 % mean / 36.7 % min
+  to 95.2 % / 93.3 % (2000 fresh points: 84.0 / 40.7 to 96.1 / 93.7). Seed 0 on V's Windows
+  box: 100 % train / 95.8 % test (was 99.6 / 97.5 on its 120 test points, 96.7 → 97.6 fresh).
+  The old recipe stays available as "fourier-gauss-v0" (`skip_decide = "none"`): a named
+  golden, the doctor fingerprint, and a UI recipe. Room above it: concat skips reach 98.8 %
+  at 546 params.
 - The benchmark is named **FeatherBench**: fewest params that solves every pattern wins.
   Ids are now `featherbench-general-v1`, `featherbench-classic-v1`, `featherbench-quick-v1`;
   `general-v1`, `classic-v1`, `quick-v1` stay accepted (CLI, `bench:<id>` objectives, and

@@ -84,7 +84,8 @@ TIPS = {
 # Ready-made experiments: Config defaults plus these overrides. They only name
 # parts that ship with the playground (custom nn lives in my_parts.py).
 RECIPES = [
-    ("Fourier + gauss, 5-arm spiral (default)", {}),
+    ("Fourier + gauss + decide residual, 5-arm spiral (default)", {}),
+    ("Fourier + gauss classic, no skips (the v0 default)", dict(skip_decide="none")),
     ("Circles with zero hidden neurons (x², y²)",
      dict(dataset="Circles", model="mlp", layers="", features=("x", "y", "x²", "y²"),
           schedule="constant")),

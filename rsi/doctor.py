@@ -18,6 +18,7 @@ import time
 
 FINGERPRINT = {"init_param_sum": 17.098907, "data_sum": 0.786433,
                "loss": {"1": 1.873401, "10": 1.620902, "100": 1.452731}}  # Linux x86_64, torch 2.14 (A6)
+V0 = {"skip_decide": "none"}  # "fourier-gauss-v0": the recipe FINGERPRINT was taken with
 
 
 def _check(name, fn):
@@ -53,7 +54,7 @@ def fingerprint():
     """Init param sum, data sum and losses at steps 1/10/100 of the default config, seed 0."""
     from nncore import Config, Session
     with contextlib.redirect_stdout(sys.stderr):
-        s = Session(Config())
+        s = Session(Config(**V0))
         init = float(sum(float(p.detach().sum()) for p in s.model.parameters()))
         data = float(s.X_all.sum())
         losses, done = {}, 0

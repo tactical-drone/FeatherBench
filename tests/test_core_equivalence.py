@@ -11,6 +11,7 @@ from nncore import Config, Session
 
 CONFIGS = {
     "default": Config(),
+    "fourier-gauss-v0": Config(skip_decide="none"),
     "mlp+xavier": Config(model="mlp", init="xavier uniform"),
     "epoch shuffle": Config(sampler="epoch shuffle"),
     "mlp batch=None": Config(model="mlp", batch_size=None),

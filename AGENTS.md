@@ -54,8 +54,8 @@ fingerprint): repeating a run is free and returns `"cached": true`.
 
 ## 6. Reproducibility
 Same machine + same code fingerprint (`meta.code_fp`) ⇒ bit-identical numbers, whatever `--workers`.
-Numbers differ across platforms (V's Windows box: 99.6/97.5 for the default at 7000 steps; Linux torch 2.14:
-98.3/90.0). `python -m rsi replay TRIAL_ID` re-runs bypassing the cache (exit 10 unless identical).
+Numbers differ across platforms. V's Windows box at 7000 steps, seed 0: the default 100/95.8 (5 seeds: 95.2 mean,
+93.3 min test); the pre-skip recipe "fourier-gauss-v0" (`skip_decide=none`) 99.6/97.5, Linux torch 2.14 98.3/90.0. `python -m rsi replay TRIAL_ID` re-runs bypassing the cache (exit 10 unless identical).
 `python -m rsi doctor --golden` checks this machine against `tests/golden.json`.
 
 ## 7. Recipes

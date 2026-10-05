@@ -35,7 +35,7 @@ class Config:
     act_prepare: str = "linear"            # custom nn: ACTIVATIONS for prepare
     layer: str = "linear"                 # LAYERS
     skip: str = "none"                    # SKIPS (custom nn: the skip around perc)
-    skip_decide: str = "same"             # custom nn: SKIPS around decide, "same" = skip
+    skip_decide: str = "residual (same width)"  # custom nn: SKIPS around decide, "same" = skip
     skip_relate: str = "same"             # custom nn: SKIPS around relate
     skip_prepare: str = "same"            # custom nn: SKIPS around prepare
     init: str = "pytorch default"         # INITIALIZERS
