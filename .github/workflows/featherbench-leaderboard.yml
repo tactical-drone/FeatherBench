@@ -4,6 +4,10 @@
 # executes reviewed code. It scores the changed submissions itself on this Linux runner,
 # keeps one result per racer in featherbench/results/, and rebuilds
 # featherbench/leaderboard.json, which the UI's FeatherBench > Top 10 reads.
+#
+# Two jobs: "score" runs the benchmark with a read-only token and no stored credentials;
+# "publish" never runs repo code, it only copies the scored JSON files and commits them.
+# Actions are pinned to commit SHAs.
 name: FeatherBench leaderboard
 
 on:
@@ -19,7 +23,7 @@ on:
         default: false
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: featherbench-leaderboard
@@ -29,12 +33,15 @@ jobs:
   score:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
 
@@ -67,14 +74,47 @@ jobs:
           done
           python -m rsi featherbench leaderboard > /dev/null
 
-      - name: Commit the leaderboard
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: featherbench-scores
+          path: |
+            featherbench/results/
+            featherbench/leaderboard.json
+          retention-days: 7
+
+  publish:
+    needs: score
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: featherbench-scores
+          path: ${{ runner.temp }}/scores
+
+      - name: Copy the scored JSON (nothing else) and commit
+        env:
+          SCORES: ${{ runner.temp }}/scores
         run: |
+          set -eu
+          test -f "$SCORES/leaderboard.json"
+          rm -rf featherbench/results && mkdir -p featherbench/results
+          find "$SCORES/results" -maxdepth 1 -type f -name '*.json' -exec cp {} featherbench/results/ \;
+          cp "$SCORES/leaderboard.json" featherbench/leaderboard.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add featherbench/results featherbench/leaderboard.json
+          git add -A featherbench/results featherbench/leaderboard.json
           if git diff --cached --quiet; then
             echo "leaderboard unchanged"
-          else
-            git commit -m "FeatherBench: update leaderboard"
-            git push
+            exit 0
           fi
+          git commit -m "FeatherBench: update leaderboard"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push && exit 0
+            sleep 5
+          done
+          exit 1
