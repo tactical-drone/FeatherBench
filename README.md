@@ -3,12 +3,39 @@
 Tiny neural nets trained live: decision boundary, per-neuron maps and loss curve,
 redrawn every frame. Every piece of the net is a swappable part.
 
-## Install and run (Windows 11)
+## Install and run
 
-    pip install torch numpy pyqtgraph PyQt6
-    python nn_playground.py              # the live window (--opengl if frames feel heavy)
+Needs Python 3.10 or newer. Tested on Windows 11; the code is plain Qt and PyTorch.
+
+    pip install -r requirements.txt
+    python nn_playground.py              # the live window
     python headless.py --list            # every registered part
     python headless.py --compare activation=tanh,relu,gelu --steps 3000
+
+Launcher options:
+
+    python nn_playground.py --load my_settings.json   # start from saved settings
+    python nn_playground.py --fresh                   # ignore last session's settings
+    python nn_playground.py --opengl                  # GL viewport, if frames feel heavy
+    python nn_playground.py --version
+
+## What you get
+
+- **Live training view**: decision boundary, a thumbnail per neuron of any hidden layer,
+  and Loss / Accuracy / Activation tabs, all redrawn every frame.
+- **Recipes menu**: ready-made experiments (zero-neuron Circles, one-neuron XOR, deep
+  residual spiral, ...) one click away.
+- **Hover the plane** to read the predicted class and confidence at that spot.
+- **Remembers your setup**: settings, view options and window size come back next launch.
+- **Save / load settings** as .json, **copy the setup as a `headless.py` command**
+  (Ctrl+Shift+C) to rerun it from the command line, and **F12** screenshots.
+  Drop a settings .json on the window to load it.
+- **Save the trained model** (Ctrl+Shift+S): a .pt holding the weights plus the settings
+  that built them, so `Session(Config(**ckpt["config"]))` + `load_state_dict` restores it.
+  **Export history** writes the loss / accuracy curves as CSV.
+- **Guard rails**: bad values are flagged in red and never applied, training pauses
+  itself if the loss blows up (NaN), and **Stop at step** pauses at a step you choose.
+- Every control has a tooltip; F1 opens the help.
 
 ## Layout
 
@@ -73,9 +100,11 @@ when it changes.
 - **Inputs**: extra features (x², y², x·y, sin, r) like TF Playground. Checking x² and y² solves Circles with zero hidden neurons.
 - **Skip**: `residual (same width)` adds skip connections between same-width layers.
 - **Steps / frame**: training speed. Frames render as fast as the display allows.
-- **Grid res**: boundary resolution (128 default; 256 is sharper, costs ~4x render).
-- **Neuron view**: which hidden layer's neurons to show (blue = positive, orange = negative, up to 32).
-- Keys: Space play/pause, S step, R reset weights, N new data.
+- **Stop at step**: pause automatically at that step (`never` = keep going).
+- **Grid res**: boundary resolution (192 default; 256 is sharper, 64 is fastest).
+- **Neuron view**: which hidden layer's neurons to show (up to 32). **Neuron scale** picks how values map to colours: `full range` stretches each neuron over the whole palette, `per-neuron max` keeps 0 in the middle (violet).
+- Keys: Space play/pause, S step, R reset weights, N new data, Ctrl+S / Ctrl+O save / load
+  settings, Ctrl+Shift+C copy as headless command, F12 screenshot, Ctrl+D defaults, F1 help.
 
 ## Challenges
 

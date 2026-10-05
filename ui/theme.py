@@ -13,8 +13,18 @@ CLASS_COLORS = np.array([
     [0, 187, 249],    # sky
     [254, 228, 64],   # lemon
     [155, 93, 229],   # violet
+    [255, 150, 40],   # orange
+    [140, 240, 90],   # lime
+    [220, 225, 255],  # ice
 ], dtype=np.float32)
+CLASS_NAMES = ["aqua", "pink", "sky", "lemon", "violet", "orange", "lime", "ice"]
 BG_T, CLASS_COLORS_T = torch.from_numpy(BG), torch.from_numpy(CLASS_COLORS)
+
+
+def class_colors(k):
+    """(k, 3) float colours for k classes; past the palette they repeat."""
+    return CLASS_COLORS_T[torch.arange(k) % len(CLASS_COLORS_T)]
+
 
 # juicy LUT for neuron maps, no dark middle so every neuron stays colourful:
 # aqua .. sky .. violet (0) .. pink .. lemon
@@ -32,4 +42,8 @@ NEURON_LUT = np.stack([np.interp(_t, _STOPS, _JUICY[:, c]) for c in range(3)], 1
 WINDOW_BG, WINDOW_FG = "#0b0c10", "#c8d0e0"
 TRAIN_PEN, TEST_PEN = "#00f0ff", "#ff2a6d"
 STATS_STYLE = "font-family: Consolas, monospace; color: #7fffd4;"
+STATS_DIVERGED_STYLE = "font-family: Consolas, monospace; color: #ff2a6d;"
+SECTION_STYLE = "color: #ff2a6d; font-weight: bold; margin-top: 6px;"
 ERROR_STYLE = "background: #501020;"
+RUNNING_STYLE = "color: #00f0ff; font-weight: bold; padding: 0 8px;"
+PAUSED_STYLE = "color: #8890a0; padding: 0 8px;"

@@ -9,7 +9,7 @@ import torch
 
 from nncore import Registry
 
-from .theme import BG_T, CLASS_COLORS_T, VIEW
+from .theme import BG_T, VIEW, class_colors
 
 BOUNDARY_PAINTERS = Registry("boundary painter", "fn(probs, r) -> uint8 (r, r, 3)")
 NEURON_PAINTERS = Registry("neuron painter", "fn(hidden) -> uint8 (n, r*r)")
@@ -26,8 +26,8 @@ def make_grid(res):
 @BOUNDARY_PAINTERS.register("confidence + edges")
 def confidence_edges(probs, r):
     K = probs.shape[1]
-    conf = ((probs.amax(1, keepdim=True) - 1 / K) / (1 - 1 / K)).sqrt_()
-    rgb = BG_T + (probs @ CLASS_COLORS_T[:K] - BG_T) * (0.25 + 0.6 * conf)
+    conf = ((probs.amax(1, keepdim=True) - 1 / K) / max(1 - 1 / K, 1e-9)).clamp_(0, 1).sqrt_()
+    rgb = BG_T + (probs @ class_colors(K) - BG_T) * (0.25 + 0.6 * conf)
     rgb = rgb.view(r, r, 3)
     cls = probs.argmax(1).view(r, r)
     edge = torch.zeros((r, r), dtype=torch.bool)
@@ -40,7 +40,7 @@ def confidence_edges(probs, r):
 @BOUNDARY_PAINTERS.register("hard classes")
 def hard_classes(probs, r):
     K = probs.shape[1]
-    rgb = BG_T + (CLASS_COLORS_T[:K][probs.argmax(1)] - BG_T) * 0.6
+    rgb = BG_T + (class_colors(K)[probs.argmax(1)] - BG_T) * 0.6
     return rgb.view(r, r, 3).to(torch.uint8).numpy()
 
 
