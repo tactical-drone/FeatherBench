@@ -664,9 +664,15 @@ class Evolution:
         self.write_outputs()
         return ok
 
+    def holdout_set(self):
+        """Genomes whose holdout counts now: the current top holdout_top plus the baseline.
+        A genome scored in an earlier finished segment (before a resume) that has since
+        dropped out keeps its cells, but its holdout no longer ranks or reports it."""
+        return set(self.hof[:max(self.s.holdout_top, 0)]) | {self.base_gid}
+
     def holdout_of(self, gid):
         r = self.records.get(gid)
-        if not r or not self.hseeds or any((d, sd) not in r["hcells"] for d in self.task.datasets for sd in self.hseeds):
+        if not r or not self.hseeds or gid not in self.holdout_set() or any((d, sd) not in r["hcells"] for d in self.task.datasets for sd in self.hseeds):
             return None
         sc, fit = self.score(gid, holdout=True)
         cs = [r["hcells"][(d, sd)] for d in self.task.datasets for sd in self.hseeds]

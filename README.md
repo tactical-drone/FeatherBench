@@ -167,7 +167,10 @@ The full guide for agents (golden rules, budgets, recipes, error codes) is
 
 - **Hidden layers** (mlp model): `4,4` = two layers of 4. `8:sin,4:tanh` sets per-layer activations. Empty = linear model.
 - **Inputs**: extra features (x², y², x·y, sin, r) like TF Playground. Checking x² and y² solves Circles with zero hidden neurons.
-- **Skip**: `residual (same width)` adds skip connections between same-width layers.
+- **Skip**: how a layer's output combines with its input. On mlp it applies between layers
+  (`residual (same width)` / `add` need equal widths). On custom nn it wraps the perc stage, and
+  **skip: decide / relate / prepare** pick one per stage, like the per-stage activations
+  (`same` = Skip where the widths allow). `concat` widens the next layer instead of adding.
 - **Steps / frame**: training speed. Frames render as fast as the display allows.
 - **Stop at step**: pause automatically at that step (`never` = keep going).
 - **Grid res**: boundary resolution (192 default; 256 is sharper, 64 is fastest).

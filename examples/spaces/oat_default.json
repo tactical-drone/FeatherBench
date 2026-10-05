@@ -16,7 +16,6 @@
     "weight_decay": {"kind": "choice", "choices": [0, 1e-05, 0.0001, 0.001]},
     "batch_size":   {"kind": "ordinal", "choices": [8, 16, 32, 64, 128, null]}
   },
-  "inert": {"custom nn": ["skip"]},
   "frozen_by_default": ["loss", "train_step"],
   "constraints": {"max_params": 20000, "max_est_seconds": 120}
 }

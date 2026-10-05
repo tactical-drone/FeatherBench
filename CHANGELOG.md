@@ -7,6 +7,14 @@ plus a code fingerprint, so you can tell which version produced a number.
 
 ## Unreleased
 
+- custom nn (Wide) now really uses skip connections, one per stage like the activations:
+  `skip` wraps perc, new `skip_decide`, `skip_relate`, `skip_prepare` (default `same`) wrap
+  decide, relate and prepare. Before, Wide stored `skip` but never applied it. With every
+  skip `none` the network and its numbers are bit-identical (golden 99.6 / 97.5 unchanged).
+  `concat` widens the next layer; a stage on `same` falls back to none where the main skip
+  can't span a width change; an explicit misfit is refused at build time with a readable error.
+- UI: Skip is enabled for custom nn, with skip: decide / relate / prepare dropdowns.
+
 ## 1.0.0 (date: TODO(V))
 
 The first tagged release. The default config's numbers are unchanged: the new `Session`

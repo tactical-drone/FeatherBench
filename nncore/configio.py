@@ -47,10 +47,12 @@ PART_REGISTRIES = {
 FIELD_REGISTRY = {
     "dataset": "dataset", "splitter": "splitter", "features": "features", "model": "model",
     "expand": "expand", "activation": "activation", "act_decide": "activation", "act_relate": "activation",
-    "act_prepare": "activation", "layer": "layer", "skip": "skip", "init": "init", "loss": "loss",
+    "act_prepare": "activation", "layer": "layer", "skip": "skip", "skip_decide": "skip", "skip_relate": "skip",
+    "skip_prepare": "skip", "init": "init", "loss": "loss",
     "optimizer": "optimizer", "schedule": "schedule", "train_step": "train_step", "sampler": "sampler",
 }  # Config field -> PART_REGISTRIES key ("features" holds several names)
-SPECIAL_VALUES = {"act_decide": {"same"}, "act_relate": {"same"}, "act_prepare": {"same"}}
+SPECIAL_VALUES = {"act_decide": {"same"}, "act_relate": {"same"}, "act_prepare": {"same"},
+                  "skip_decide": {"same"}, "skip_relate": {"same"}, "skip_prepare": {"same"}}
 FIELD_BOUNDS = {"n_points": (1, 100000), "noise": (0.0, 1.0), "test_frac": (0.0, 0.999999), "seed": (0, 2**32 - 1),
                 "width": (0, 512), "classes": (1, 512), "fourier_freq": (1e-6, 100.0), "lr": (1e-6, 100.0),
                 "weight_decay": (0.0, 1.0), "batch_size": (1, 100000)}  # hard validity, inclusive
@@ -77,7 +79,10 @@ FIELD_HELP = {
     "act_relate": "custom nn: activation of relate; 'same' = activation",
     "act_prepare": "custom nn: activation of prepare; 'same' = activation",
     "layer": "weighted transform per mlp layer",
-    "skip": "how a layer output combines with its input",
+    "skip": "how a layer output combines with its input (custom nn: the skip around perc)",
+    "skip_decide": "custom nn: skip around decide (input head); 'same' = skip",
+    "skip_relate": "custom nn: skip around relate (input perc); 'same' = skip",
+    "skip_prepare": "custom nn: skip around prepare (input relate); 'same' = skip",
     "init": "weight initialisation, run right after the build",
     "loss": "training loss (also the reported loss)",
     "optimizer": "torch optimizer",

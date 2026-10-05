@@ -36,10 +36,12 @@ python -m rsi bench --benchmark quick-v1 --model mlp --layers 8,8   # fewest-par
 - **Task** (never searched): `dataset n_points noise splitter test_frac seed`. `seed` drives data, split, init
   AND batch order; use `--seeds 0-4` for replicates, never a different `seed` per arm.
 - **Model**: `model` = `custom nn` (reads `width classes expand fourier_freq activation act_decide act_relate
-  act_prepare skip`) or `mlp` (reads `layers activation layer skip`). Setting a field the model does not read
+  act_prepare skip skip_decide skip_relate skip_prepare`) or `mlp` (reads `layers activation layer skip`). Setting a field the model does not read
   gives `W_INERT_FIELD`. `features` (order matters), `init`, `extra` are read by every model. Pass features
   comma-separated in the order you want: `--features "x,y,sin x"` (or `x^2` for `x²`).
-- `act_*` accept `same` (= `activation`). `layers` grammar: `'' | W[:ACT](,W[:ACT])*`, W in 1..512, e.g.
+- `act_*` accept `same` (= `activation`); `skip_*` accept `same` (= `skip` where the widths allow, else none).
+  On custom nn, `skip` wraps perc and `skip_*` wrap decide / relate / prepare; `concat` widens the next layer,
+  an explicit `add` across a width change is refused at build time. `layers` grammar: `'' | W[:ACT](,W[:ACT])*`, W in 1..512, e.g.
   `8:sin,8`. `fourier_freq` only matters with `expand="fourier (sin)"`. `batch_size=full` = full batch.
 - **Optimiser**: `optimizer lr weight_decay schedule loss train_step`; **batching**: `sampler batch_size`.
 - `extra.NAME` (`--set extra.clip=0.5`) carries knobs for your own parts.

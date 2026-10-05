@@ -34,7 +34,10 @@ class Config:
     act_relate: str = "same"              # custom nn: ACTIVATIONS for relate
     act_prepare: str = "linear"            # custom nn: ACTIVATIONS for prepare
     layer: str = "linear"                 # LAYERS
-    skip: str = "none"                    # SKIPS
+    skip: str = "none"                    # SKIPS (custom nn: the skip around perc)
+    skip_decide: str = "same"             # custom nn: SKIPS around decide, "same" = skip
+    skip_relate: str = "same"             # custom nn: SKIPS around relate
+    skip_prepare: str = "same"            # custom nn: SKIPS around prepare
     init: str = "pytorch default"         # INITIALIZERS
 
     # optimisation
@@ -56,7 +59,7 @@ class Config:
 
 
 DATA_KEYS = {"dataset", "n_points", "noise", "splitter", "test_frac", "seed"}
-MODEL_KEYS = {"features", "model", "layers", "activation", "act_decide", "act_relate", "act_prepare", "width", "classes", "expand", "fourier_freq", "layer", "skip", "init", "extra"}
+MODEL_KEYS = {"features", "model", "layers", "activation", "act_decide", "act_relate", "act_prepare", "width", "classes", "expand", "fourier_freq", "layer", "skip", "skip_decide", "skip_relate", "skip_prepare", "init", "extra"}
 OPT_KEYS = {"optimizer", "lr", "weight_decay", "schedule"}
 SAMPLER_KEYS = {"sampler", "batch_size"}
 LIVE_KEYS = {"loss", "train_step"}  # looked up every step, take effect immediately

@@ -15,6 +15,9 @@
     "layers":       {"kind": "layers", "min_depth": 0, "max_depth": 5, "widths": [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64], "act": {"exclude": ["linear"]}},
     "layer":        {"kind": "part", "registry": "layer", "choices": "*"},
     "skip":         {"kind": "part", "registry": "skip", "choices": "*"},
+    "skip_decide":  {"kind": "part", "registry": "skip", "choices": "*", "extra_choices": ["same"]},
+    "skip_relate":  {"kind": "part", "registry": "skip", "choices": "*", "extra_choices": ["same"]},
+    "skip_prepare": {"kind": "part", "registry": "skip", "choices": "*", "extra_choices": ["same"]},
     "features":     {"kind": "subset", "registry": "features", "min": 1, "must_include": ["x", "y"]},
     "init":         {"kind": "part", "registry": "init", "choices": "*"},
     "optimizer":    {"kind": "part", "registry": "optimizer", "choices": "*"},
@@ -24,7 +27,6 @@
     "batch_size":   {"kind": "ordinal", "choices": [8, 16, 32, 64, 128, null]},
     "sampler":      {"kind": "part", "registry": "sampler", "choices": "*"}
   },
-  "inert": {"custom nn": ["skip"]},
   "frozen_by_default": ["loss", "train_step"],
   "mutation_weights": {"layers": 2.0, "lr": 1.5, "activation": 1.5},
   "constraints": {"max_params": 20000, "max_est_seconds": 120}

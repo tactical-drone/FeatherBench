@@ -2,6 +2,9 @@
 
 # Requested edits to my_parts.py (for the team that owns it)
 
+> Applied in 5a0e5af. Since then Wide has real skip connections (see CHANGELOG,
+> "Unreleased"), so the notes below about skip being unused are history.
+
 `my_parts.py` is V's workbench and belongs to your team, so the rsi console team did not
 touch it. These are the only edits we ask for. **None of them changes Wide's
 architecture, `forward`, its layers, or any number it computes.** Line numbers are from our

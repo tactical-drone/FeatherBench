@@ -27,9 +27,11 @@ class SpaceTests(unittest.TestCase):
             sp = Space.load("default", base)
             self.assertEqual(sp.phenotype(sp.encode(base)), configio.config_to_dict(base))
         g = self.sp.encode(Config())
-        twin = dict(g, layers=[[16, "relu"]], skip="add")  # mlp-only genes on a custom nn genome
+        twin = dict(g, layers=[[16, "relu"]], layer="linear (no bias)")  # mlp-only genes on a custom nn genome
         self.assertEqual(self.sp.genome_id(g), self.sp.genome_id(twin))
         self.assertNotIn("layers", self.sp.active(g))
+        self.assertTrue({"skip", "skip_decide", "skip_relate", "skip_prepare"} <= set(self.sp.active(g)))
+        self.assertNotEqual(self.sp.genome_id(g), self.sp.genome_id(dict(g, skip="concat")))  # skip is live on custom nn
         self.assertIn("layers", self.sp.active(dict(g, model="mlp")))
         mlp = self.sp.phenotype(dict(g, model="mlp", layers=[[8, "softplus"], [8, "softplus"]]))
         self.assertEqual(mlp["layers"], "8,8")  # base string kept verbatim when it means the same

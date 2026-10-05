@@ -56,7 +56,13 @@ TIPS = {
     "act: relate": "custom nn only. Activation after relate, the narrow bottleneck.",
     "act: prepare": "custom nn only. Activation after prepare ('linear' = none).",
     "Layer type": "mlp only. The weighted transform used for every layer.",
-    "Skip": "mlp only. How a layer's output combines with its input (residuals etc.).",
+    "Skip": "How a layer's output combines with its input (residuals etc.). mlp: between "
+            "layers. custom nn: around perc, and any skip: dropdown set to 'same'.",
+    "skip: decide": "custom nn only. Skip around decide (its input is head). 'same' = Skip.",
+    "skip: relate": "custom nn only. Skip around relate, the narrow bottleneck (input perc). "
+                    "'same' = Skip where the widths allow, else none.",
+    "skip: prepare": "custom nn only. Skip around prepare (input relate). 'same' = Skip where "
+                     "the widths allow, else none.",
     "Init": "How the starting weights are drawn.",
     "Loss": "What training minimises.",
     "Optimizer": "How weights are updated from the gradients.",
@@ -299,6 +305,10 @@ class Playground(QtWidgets.QMainWindow):
         self.cb_act_prepare = row("  act: prepare", combo(same_or_act, c.act_prepare, apply))
         self.cb_layer = row("Layer type", combo(LAYERS, c.layer, apply))
         self.cb_skip = row("Skip", combo(SKIPS, c.skip, apply))
+        same_or_skip = ["same", *SKIPS]  # "same" follows Skip
+        self.cb_skip_decide = row("  skip: decide", combo(same_or_skip, c.skip_decide, apply))
+        self.cb_skip_relate = row("  skip: relate", combo(same_or_skip, c.skip_relate, apply))
+        self.cb_skip_prepare = row("  skip: prepare", combo(same_or_skip, c.skip_prepare, apply))
         self.cb_init = row("Init", combo(INITIALIZERS, c.init, apply))
 
         section("TRAINING")
@@ -431,9 +441,10 @@ class Playground(QtWidgets.QMainWindow):
         self.gl.ci.layout.setColumnStretchFactor(1, 2)
 
         # which controls belong to which model; the others are greyed out
-        self.mlp_only = [self.le_layers, self.cb_layer, self.cb_skip]
+        self.mlp_only = [self.le_layers, self.cb_layer]
         self.custom_only = [self.sp_width, self.sp_classes, self.cb_expand, self.sp_ffreq,
-                            self.cb_act_decide, self.cb_act_relate, self.cb_act_prepare]
+                            self.cb_act_decide, self.cb_act_relate, self.cb_act_prepare,
+                            self.cb_skip_decide, self.cb_skip_relate, self.cb_skip_prepare]
 
     def _build_menus(self):
         def action(menu, text, fn, key=None, tip=""):
@@ -520,7 +531,9 @@ class Playground(QtWidgets.QMainWindow):
             activation=self.cb_act.currentText(),
             act_decide=self.cb_act_decide.currentText(), act_relate=self.cb_act_relate.currentText(),
             act_prepare=self.cb_act_prepare.currentText(), layer=self.cb_layer.currentText(),
-            skip=self.cb_skip.currentText(), init=self.cb_init.currentText(),
+            skip=self.cb_skip.currentText(), skip_decide=self.cb_skip_decide.currentText(),
+            skip_relate=self.cb_skip_relate.currentText(), skip_prepare=self.cb_skip_prepare.currentText(),
+            init=self.cb_init.currentText(),
             loss=self.cb_loss.currentText(), optimizer=self.cb_opt.currentText(),
             lr=num(self.cb_lr, c.lr, float, lambda v: 0 < v < math.inf),
             weight_decay=num(self.cb_wd, c.weight_decay, float, lambda v: 0 <= v < math.inf),
@@ -555,6 +568,9 @@ class Playground(QtWidgets.QMainWindow):
             self.cb_act_prepare.setCurrentText(c.act_prepare)
             self.cb_layer.setCurrentText(c.layer)
             self.cb_skip.setCurrentText(c.skip)
+            self.cb_skip_decide.setCurrentText(c.skip_decide)
+            self.cb_skip_relate.setCurrentText(c.skip_relate)
+            self.cb_skip_prepare.setCurrentText(c.skip_prepare)
             self.cb_init.setCurrentText(c.init)
             self.cb_loss.setCurrentText(c.loss)
             self.cb_opt.setCurrentText(c.optimizer)
