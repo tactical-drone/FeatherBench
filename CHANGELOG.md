@@ -12,8 +12,8 @@ plus a code fingerprint, so you can tell which version produced a number.
   checks a file exactly as CI does and runs the official benchmark; `rsi featherbench
   leaderboard` ranks CI's results into `featherbench/leaderboard.json`. CI: a read-only
   `pull_request` check that shows the score, and a main-only workflow that scores merged
-  submissions on Linux and commits the leaderboard. House entry: `tactical-drone` (9 / 12
-  solved at ≤ 346 params). Rules in `featherbench/README.md`; the BridgeBench prompt in
+  submissions on Linux and commits the leaderboard. House entry: `tactical-drone` (10 / 12
+  solved at 346 params on CI's Linux runner). Rules in `featherbench/README.md`; the BridgeBench prompt in
   `docs/featherbench-prompt.md`; CLAUDE.md and AGENTS.md describe the attempt loop.
 - UI: the setup garage (ghost lap, setup sheet, 5 laps, ask the machine) and a FeatherBench
   menu (run on this setup, top 10 with identicons, how to attempt).

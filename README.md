@@ -19,8 +19,8 @@ and training speed: generality per parameter, measured instead of argued about.
 | | |
 |---|---|
 | **World record** | *unclaimed*: no setup solves all 12 yet |
-| **House entry** | `tactical-drone`: the playground default, 9 / 12 solved at ≤ 346 params |
-| **Leaderboard** | [`featherbench/leaderboard.json`](featherbench/leaderboard.json), scored by CI on Linux, top 10 loadable in the app (FeatherBench > Top 10) |
+| **House entry** | `tactical-drone`: the playground default, 10 / 12 solved at 346 params (CI, Linux) |
+| **Leaderboard** | [`featherbench/leaderboard.json`](featherbench/leaderboard.json), the source of truth for current standings, scored by CI on Linux, top 10 loadable in the app (FeatherBench > Top 10) |
 | **Rules** | [`featherbench/README.md`](featherbench/README.md) |
 
 ### Make an attempt (human, AI, or both)

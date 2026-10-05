@@ -87,7 +87,9 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
 - `python -m rsi bench rank a.json b.json ...` builds the leaderboard (solved_all, then fewest `params_max`,
   then mean accuracy). `evolve --objective bench:featherbench-general-v1` searches for the smallest solver.
 - **Making an attempt** (rules: `featherbench/README.md`). The record is open: no setup solves all 12 patterns
-  yet; the house entry solves 9 at ≤ 346 params. A good loop:
+  yet. **Current standings: read `featherbench/leaderboard.json`** (CI's Linux numbers, the only official ones;
+  any number quoted elsewhere, including prompts and your own local runs, may be older or from another
+  platform). At launch the house entry solved 10 / 12 at 346 params. A good loop:
   1. `python -m rsi featherbench --config SETUP.json --workers 4` scores a setup (~1 min on 4 cores; cached).
   2. Find the failing datasets in `per_dataset`, fix them with a few `run --datasets "..." --seeds 0-2` probes,
      or search: `evolve --objective bench:featherbench-general-v1 --background --name fb1`.

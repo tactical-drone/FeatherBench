@@ -6,7 +6,8 @@
 
 **Linked repository:** https://github.com/tactical-drone/rsi-console
 
-**Prompt content** (everything between the lines):
+**Prompt content** (everything between the lines; this is the posted version, so its
+numbers are from launch day; current standings are always in `featherbench/leaderboard.json`):
 
 ---
 
