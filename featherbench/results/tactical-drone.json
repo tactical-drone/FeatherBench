@@ -1,0 +1,600 @@
+{
+ "format": "rsi/bench",
+ "version": 1,
+ "benchmark": {
+  "id": "featherbench-general-v1",
+  "version": 1,
+  "hash": "6e9b8a2dc8a4",
+  "definition": {
+   "id": "general-v1",
+   "version": 1,
+   "datasets": [
+    "Bullseye (5 rings)",
+    "Sectors (8 wedges)",
+    "Egg crate (3)",
+    "Checkerboard",
+    "Hex tiling (3, coarse)",
+    "Random lines (parity)",
+    "Voronoi (6)",
+    "Spiral (3 arms)",
+    "Blobs + tiny cluster",
+    "Mandelbrot",
+    "Yin-yang",
+    "Smiley"
+   ],
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "steps": 3000,
+   "n_points": 600,
+   "noise": 0.05,
+   "test_frac": 0.2,
+   "splitter": "random",
+   "fresh_points": 2000,
+   "threshold": 0.9,
+   "metric": "fresh_acc"
+  },
+  "official": true
+ },
+ "submitted": "2026-10-05T12:41:15Z",
+ "config": {
+  "dataset": "Spiral (5 arms)",
+  "n_points": 600,
+  "noise": 0.05,
+  "splitter": "random",
+  "test_frac": 0.2,
+  "seed": 0,
+  "features": [
+   "x",
+   "y"
+  ],
+  "model": "custom nn",
+  "width": 8,
+  "classes": 5,
+  "expand": "fourier (sin)",
+  "fourier_freq": 3.0,
+  "layers": "8,8",
+  "activation": "softplus",
+  "act_decide": "gauss",
+  "act_relate": "same",
+  "act_prepare": "linear",
+  "layer": "linear",
+  "skip": "none",
+  "skip_decide": "residual (same width)",
+  "skip_relate": "same",
+  "skip_prepare": "same",
+  "init": "pytorch default",
+  "loss": "cross entropy",
+  "optimizer": "Adam",
+  "lr": 0.03,
+  "weight_decay": 1e-05,
+  "schedule": "step (÷10 every 2000)",
+  "train_step": "standard",
+  "sampler": "random (with replacement)",
+  "batch_size": 32,
+  "extra": {}
+ },
+ "config_key": "6120f2f7027e3665",
+ "config_diff": {},
+ "describe": "wide 8",
+ "per_dataset": [
+  {
+   "dataset": "Bullseye (5 rings)",
+   "fresh_acc_mean": 0.9033333460489908,
+   "fresh_acc_min": 0.8270000219345093,
+   "test_acc_mean": 0.8944444457689921,
+   "n_params": 326,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Sectors (8 wedges)",
+   "fresh_acc_mean": 0.9415000081062317,
+   "fresh_acc_min": 0.9325000047683716,
+   "test_acc_mean": 0.9333333373069763,
+   "n_params": 336,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Egg crate (3)",
+   "fresh_acc_mean": 0.9458333253860474,
+   "fresh_acc_min": 0.9350000023841858,
+   "test_acc_mean": 0.9583333333333334,
+   "n_params": 331,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Checkerboard",
+   "fresh_acc_mean": 0.8775000174840292,
+   "fresh_acc_min": 0.8025000095367432,
+   "test_acc_mean": 0.8805555502573649,
+   "n_params": 326,
+   "solved": false,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Hex tiling (3, coarse)",
+   "fresh_acc_mean": 0.94050000111262,
+   "fresh_acc_min": 0.9330000281333923,
+   "test_acc_mean": 0.9583333333333334,
+   "n_params": 331,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Random lines (parity)",
+   "fresh_acc_mean": 0.9291666746139526,
+   "fresh_acc_min": 0.9225000143051147,
+   "test_acc_mean": 0.930555542310079,
+   "n_params": 326,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Voronoi (6)",
+   "fresh_acc_mean": 0.9445000092188517,
+   "fresh_acc_min": 0.9419999718666077,
+   "test_acc_mean": 0.9583333134651184,
+   "n_params": 346,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Spiral (3 arms)",
+   "fresh_acc_mean": 0.9277610977490743,
+   "fresh_acc_min": 0.7852852940559387,
+   "test_acc_mean": 0.9222222169240316,
+   "n_params": 331,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Blobs + tiny cluster",
+   "fresh_acc_mean": 0.7310000061988831,
+   "fresh_acc_min": 0.597000002861023,
+   "test_acc_mean": 0.7111111084620158,
+   "n_params": 336,
+   "solved": false,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Mandelbrot",
+   "fresh_acc_mean": 0.9423333406448364,
+   "fresh_acc_min": 0.9340000152587891,
+   "test_acc_mean": 0.924999992052714,
+   "n_params": 326,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Yin-yang",
+   "fresh_acc_mean": 0.9553333322207133,
+   "fresh_acc_min": 0.949999988079071,
+   "test_acc_mean": 0.949999988079071,
+   "n_params": 326,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "dataset": "Smiley",
+   "fresh_acc_mean": 0.9089999993642172,
+   "fresh_acc_min": 0.8399999737739563,
+   "test_acc_mean": 0.9055555462837219,
+   "n_params": 331,
+   "solved": true,
+   "statuses": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  }
+ ],
+ "n_datasets": 12,
+ "n_solved": 10,
+ "solved_all": false,
+ "params_max": 346,
+ "params_total": 3972,
+ "mean_acc": 0.912313429845704,
+ "min_acc": 0.7310000061988831,
+ "rank_key": [
+  1,
+  -10,
+  -0.912313429845704,
+  346
+ ],
+ "threshold": 0.9,
+ "cells": [
+  {
+   "dataset": "Bullseye (5 rings)",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.9415000081062317,
+   "test_acc": 0.9166666865348816,
+   "n_params": 326,
+   "seconds": 9.1088
+  },
+  {
+   "dataset": "Bullseye (5 rings)",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9415000081062317,
+   "test_acc": 0.9333333373069763,
+   "n_params": 326,
+   "seconds": 9.1353
+  },
+  {
+   "dataset": "Bullseye (5 rings)",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.8270000219345093,
+   "test_acc": 0.8333333134651184,
+   "n_params": 326,
+   "seconds": 9.1187
+  },
+  {
+   "dataset": "Sectors (8 wedges)",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.9325000047683716,
+   "test_acc": 0.9166666865348816,
+   "n_params": 336,
+   "seconds": 9.1045
+  },
+  {
+   "dataset": "Sectors (8 wedges)",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9514999985694885,
+   "test_acc": 0.9583333134651184,
+   "n_params": 336,
+   "seconds": 7.3849
+  },
+  {
+   "dataset": "Sectors (8 wedges)",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.940500020980835,
+   "test_acc": 0.925000011920929,
+   "n_params": 336,
+   "seconds": 7.3707
+  },
+  {
+   "dataset": "Egg crate (3)",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.9564999938011169,
+   "test_acc": 0.9750000238418579,
+   "n_params": 331,
+   "seconds": 7.2214
+  },
+  {
+   "dataset": "Egg crate (3)",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9459999799728394,
+   "test_acc": 0.9583333134651184,
+   "n_params": 331,
+   "seconds": 7.2692
+  },
+  {
+   "dataset": "Egg crate (3)",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.9350000023841858,
+   "test_acc": 0.9416666626930237,
+   "n_params": 331,
+   "seconds": 7.348
+  },
+  {
+   "dataset": "Checkerboard",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.9100000262260437,
+   "test_acc": 0.9166666865348816,
+   "n_params": 326,
+   "seconds": 7.3735
+  },
+  {
+   "dataset": "Checkerboard",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9200000166893005,
+   "test_acc": 0.8999999761581421,
+   "n_params": 326,
+   "seconds": 7.4317
+  },
+  {
+   "dataset": "Checkerboard",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.8025000095367432,
+   "test_acc": 0.824999988079071,
+   "n_params": 326,
+   "seconds": 7.5068
+  },
+  {
+   "dataset": "Hex tiling (3, coarse)",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.9490000009536743,
+   "test_acc": 0.9416666626930237,
+   "n_params": 331,
+   "seconds": 7.2745
+  },
+  {
+   "dataset": "Hex tiling (3, coarse)",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9394999742507935,
+   "test_acc": 0.949999988079071,
+   "n_params": 331,
+   "seconds": 7.2349
+  },
+  {
+   "dataset": "Hex tiling (3, coarse)",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.9330000281333923,
+   "test_acc": 0.9833333492279053,
+   "n_params": 331,
+   "seconds": 7.1844
+  },
+  {
+   "dataset": "Random lines (parity)",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.9340000152587891,
+   "test_acc": 0.9416666626930237,
+   "n_params": 326,
+   "seconds": 7.2649
+  },
+  {
+   "dataset": "Random lines (parity)",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9225000143051147,
+   "test_acc": 0.9666666388511658,
+   "n_params": 326,
+   "seconds": 7.3409
+  },
+  {
+   "dataset": "Random lines (parity)",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.9309999942779541,
+   "test_acc": 0.8833333253860474,
+   "n_params": 326,
+   "seconds": 7.3659
+  },
+  {
+   "dataset": "Voronoi (6)",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.9445000290870667,
+   "test_acc": 0.9583333134651184,
+   "n_params": 346,
+   "seconds": 7.3846
+  },
+  {
+   "dataset": "Voronoi (6)",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9470000267028809,
+   "test_acc": 0.9583333134651184,
+   "n_params": 346,
+   "seconds": 7.4199
+  },
+  {
+   "dataset": "Voronoi (6)",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.9419999718666077,
+   "test_acc": 0.9583333134651184,
+   "n_params": 346,
+   "seconds": 7.2635
+  },
+  {
+   "dataset": "Spiral (3 arms)",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.9984984993934631,
+   "test_acc": 1.0,
+   "n_params": 331,
+   "seconds": 7.262
+  },
+  {
+   "dataset": "Spiral (3 arms)",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.7852852940559387,
+   "test_acc": 0.7666666507720947,
+   "n_params": 331,
+   "seconds": 7.1473
+  },
+  {
+   "dataset": "Spiral (3 arms)",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.999499499797821,
+   "test_acc": 1.0,
+   "n_params": 331,
+   "seconds": 7.1557
+  },
+  {
+   "dataset": "Blobs + tiny cluster",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.5979999899864197,
+   "test_acc": 0.5666666626930237,
+   "n_params": 336,
+   "seconds": 7.1882
+  },
+  {
+   "dataset": "Blobs + tiny cluster",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9980000257492065,
+   "test_acc": 1.0,
+   "n_params": 336,
+   "seconds": 7.3113
+  },
+  {
+   "dataset": "Blobs + tiny cluster",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.597000002861023,
+   "test_acc": 0.5666666626930237,
+   "n_params": 336,
+   "seconds": 7.1706
+  },
+  {
+   "dataset": "Mandelbrot",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.9524999856948853,
+   "test_acc": 0.925000011920929,
+   "n_params": 326,
+   "seconds": 7.3333
+  },
+  {
+   "dataset": "Mandelbrot",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9340000152587891,
+   "test_acc": 0.949999988079071,
+   "n_params": 326,
+   "seconds": 7.2767
+  },
+  {
+   "dataset": "Mandelbrot",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.940500020980835,
+   "test_acc": 0.8999999761581421,
+   "n_params": 326,
+   "seconds": 7.2758
+  },
+  {
+   "dataset": "Yin-yang",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.953000009059906,
+   "test_acc": 0.925000011920929,
+   "n_params": 326,
+   "seconds": 7.2242
+  },
+  {
+   "dataset": "Yin-yang",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9629999995231628,
+   "test_acc": 0.9666666388511658,
+   "n_params": 326,
+   "seconds": 7.2406
+  },
+  {
+   "dataset": "Yin-yang",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.949999988079071,
+   "test_acc": 0.9583333134651184,
+   "n_params": 326,
+   "seconds": 7.1976
+  },
+  {
+   "dataset": "Smiley",
+   "seed": 0,
+   "status": "ok",
+   "fresh_acc": 0.8399999737739563,
+   "test_acc": 0.8333333134651184,
+   "n_params": 331,
+   "seconds": 7.176
+  },
+  {
+   "dataset": "Smiley",
+   "seed": 1,
+   "status": "ok",
+   "fresh_acc": 0.9430000185966492,
+   "test_acc": 0.9416666626930237,
+   "n_params": 331,
+   "seconds": 7.1462
+  },
+  {
+   "dataset": "Smiley",
+   "seed": 2,
+   "status": "ok",
+   "fresh_acc": 0.9440000057220459,
+   "test_acc": 0.9416666626930237,
+   "n_params": 331,
+   "seconds": 7.0238
+  }
+ ],
+ "environment": {
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "torch": "2.14.1+cpu",
+  "nncore": "1.0.0",
+  "rsi": "1.0.0",
+  "code_fp": "c_a3f32984e50f",
+  "parts": [
+   "my_parts"
+  ]
+ },
+ "timings": {
+  "wall_s": 70.388,
+  "cell_seconds": 269.236,
+  "n_cells": 36,
+  "n_cached": 0
+ },
+ "trial_id": "t_1448b6627c57",
+ "submission_file": "featherbench/submissions/tactical-drone.json",
+ "github": "tactical-drone"
+}

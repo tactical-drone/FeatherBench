@@ -1,0 +1,66 @@
+{
+ "format": "featherbench/leaderboard",
+ "version": 1,
+ "name": "FeatherBench",
+ "rule": "fewest params that solves every pattern wins",
+ "benchmark": {
+  "id": "featherbench-general-v1",
+  "hash": "6e9b8a2dc8a4"
+ },
+ "n_entries": 1,
+ "entries": [
+  {
+   "rank": 1,
+   "github": "tactical-drone",
+   "params_max": 346,
+   "mean_acc": 0.912313429845704,
+   "min_acc": 0.7310000061988831,
+   "solved_all": false,
+   "n_solved": 10,
+   "n_datasets": 12,
+   "describe": "wide 8",
+   "submitted": "2026-10-05T12:41:15Z",
+   "config_diff": {},
+   "config": {
+    "dataset": "Spiral (5 arms)",
+    "n_points": 600,
+    "noise": 0.05,
+    "splitter": "random",
+    "test_frac": 0.2,
+    "seed": 0,
+    "features": [
+     "x",
+     "y"
+    ],
+    "model": "custom nn",
+    "width": 8,
+    "classes": 5,
+    "expand": "fourier (sin)",
+    "fourier_freq": 3.0,
+    "layers": "8,8",
+    "activation": "softplus",
+    "act_decide": "gauss",
+    "act_relate": "same",
+    "act_prepare": "linear",
+    "layer": "linear",
+    "skip": "none",
+    "skip_decide": "residual (same width)",
+    "skip_relate": "same",
+    "skip_prepare": "same",
+    "init": "pytorch default",
+    "loss": "cross entropy",
+    "optimizer": "Adam",
+    "lr": 0.03,
+    "weight_decay": 1e-05,
+    "schedule": "step (÷10 every 2000)",
+    "train_step": "standard",
+    "sampler": "random (with replacement)",
+    "batch_size": 32,
+    "extra": {}
+   },
+   "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+   "torch": "2.14.1+cpu",
+   "code_fp": "c_a3f32984e50f"
+  }
+ ]
+}
