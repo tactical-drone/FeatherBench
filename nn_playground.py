@@ -10,6 +10,11 @@ Run:  python nn_playground.py            (add --opengl to try the GL viewport)
 """
 import argparse
 import sys
+import multiprocessing
+
+if getattr(sys, "frozen", False):  # the packaged app: keep runs/ next to the .exe, not inside it
+    import os as _os
+    _os.environ.setdefault("RSI_STORE", _os.path.join(_os.path.dirname(sys.executable), "runs"))
 
 if sys.version_info < (3, 10):
     sys.exit("NN Playground needs Python 3.10 or newer (you have %d.%d)." % sys.version_info[:2])
@@ -36,4 +41,5 @@ def main():
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()  # spawned workers of the packaged app start here
     main()

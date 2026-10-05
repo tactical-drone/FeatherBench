@@ -7,6 +7,13 @@ plus a code fingerprint, so you can tell which version produced a number.
 
 ## Unreleased
 
+## 0.1.0 (2026-10-05)
+
+The first tagged release, with a Windows download: `FeatherBench-v0.1.0-windows-x64.zip`
+holds `FeatherBench.exe` (the window) and `featherbench-cli.exe` (the rsi console), no
+Python needed. Built by `.github/workflows/release.yml` from `packaging/featherbench.spec`
+when a `v*` tag is pushed. The packaged app keeps its `runs/` folder next to the .exe.
+
 - FeatherBench submissions by pull request: `featherbench/submissions/<github user>.json`
   (settings only, never code, known parts, at most 20,000 params). `rsi featherbench verify`
   checks a file exactly as CI does and runs the official benchmark; `rsi featherbench
@@ -38,9 +45,9 @@ plus a code fingerprint, so you can tell which version produced a number.
   `bench rank` of old submissions), with unchanged definition hashes.
   `python -m rsi featherbench` is an alias of `bench`. Schema ids are unchanged.
 
-## 1.0.0 (date: TODO(V))
+### The rsi console release (drafted as 1.0.0, shipped in 0.1.0)
 
-The first tagged release. The default config's numbers are unchanged: the new `Session`
+The default config's numbers are unchanged: the new `Session`
 is checked bit-for-bit against the old one (`tests/test_core_equivalence.py`). The
 headline 99.6 / 97.5 (default, 7000 steps) was measured on Windows 11; other platforms
 and torch versions give other numbers (Linux, torch 2.14: 98.3 / 90.0).

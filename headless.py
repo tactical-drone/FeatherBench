@@ -17,7 +17,11 @@ import argparse
 import os
 import sys
 import time
+import multiprocessing
 from dataclasses import fields
+
+if getattr(sys, "frozen", False):  # the packaged app: keep runs/ next to the .exe, not inside it
+    os.environ.setdefault("RSI_STORE", os.path.join(os.path.dirname(sys.executable), "runs"))
 
 
 def _rsi_command(argv):
@@ -202,4 +206,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()  # spawned workers of the packaged app start here
     sys.exit(main())

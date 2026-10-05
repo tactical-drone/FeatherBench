@@ -1,0 +1,129 @@
+# FeatherBench release. Part of nn-playground (AGPL-3.0; see COMMERCIAL.md).
+#
+# Push a tag like v0.1.0 (or run it by hand with that tag) and this builds the Windows app
+# with PyInstaller (packaging/featherbench.spec), smoke-tests it, zips it and publishes a
+# GitHub release with the zip, its SHA-256 and the CHANGELOG section as notes.
+# "build" runs read-only; only "publish" can write, and it runs no repo code.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, e.g. v0.1.0"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ env.TAG }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Install (CPU torch, UI, PyInstaller)
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "torch==2.14.*" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install numpy pyqtgraph PyQt6 pyinstaller pillow
+
+      - name: Version matches the tag
+        shell: bash
+        run: |
+          v="$(python -c "import nncore, rsi; assert nncore.__version__ == rsi.__version__; print(nncore.__version__)")"
+          if [ "v$v" != "$TAG" ]; then echo "::error::tag $TAG but nncore.__version__ is $v"; exit 1; fi
+
+      - name: Tests
+        shell: bash
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m unittest discover -s tests -t .
+
+      - name: Build
+        shell: bash
+        run: pyinstaller packaging/featherbench.spec --noconfirm
+
+      - name: Smoke-test the packaged app
+        shell: bash
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          cd "$RUNNER_TEMP"
+          app="$GITHUB_WORKSPACE/dist/FeatherBench"
+          "$app/featherbench-cli.exe" describe --section commands > /dev/null
+          "$app/featherbench-cli.exe" run --model mlp --dataset Moons --steps 300 --seeds 0-1 --workers 2 > run.json
+          python -c "import json; d = json.load(open('run.json')); assert d['ok'], d; print(d['result']['summary']['test_acc'])"
+          "$app/FeatherBench.exe" --version
+          rm -rf "$app/runs"
+
+      - name: Zip
+        shell: bash
+        run: |
+          name="FeatherBench-${TAG}-windows-x64"
+          mkdir -p out
+          cp README.md LICENSE COMMERCIAL.md dist/FeatherBench/
+          (cd dist && 7z a -tzip -mx=7 "../out/${name}.zip" FeatherBench > /dev/null)
+          (cd out && sha256sum "${name}.zip" > "${name}.zip.sha256" && cat "${name}.zip.sha256")
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-zip
+          path: out/
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-zip
+          path: ${{ runner.temp }}/out
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUT: ${{ runner.temp }}/out
+        run: |
+          set -eu
+          ver="${TAG#v}"
+          awk -v h="## ${ver} " 'index($0, h) == 1 {on = 1; next} on && /^## / {exit} on' CHANGELOG.md > notes.md
+          cat >> notes.md <<'NOTES'
+
+          ### Download
+          Windows 10/11 x64: unzip `FeatherBench-*-windows-x64.zip` anywhere and run `FeatherBench.exe`
+          (the window) or `featherbench-cli.exe` (the rsi console, for scripts and agents). No Python
+          needed. The exe is not code-signed yet, so Windows SmartScreen may ask: More info > Run anyway.
+          Check the download against the `.sha256` file. To tinker with the code (my_parts.py), run from
+          source instead: `pip install -r requirements.txt` and `python nn_playground.py`.
+          NOTES
+          gh release create "$TAG" "$OUT"/* --verify-tag --title "FeatherBench $TAG" --notes-file notes.md
