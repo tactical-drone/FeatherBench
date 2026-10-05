@@ -8,7 +8,7 @@ console, levers, budgets, error codes). The short version:
 - Drive everything through `python -m rsi <command>`: one JSON document on stdout per
   command. Start with `python -m rsi describe`.
 - Don't edit Config defaults, `nncore/session.py`, the `Wide` model in `my_parts.py`,
-  LICENSE, COMMERCIAL.md or the README's robots section. New parts go in `agent_parts/`.
+  LICENSE, COMMERCIAL.md, DONATE.md or the README's robots section. New parts go in `agent_parts/`.
 - Tests: `python -m unittest discover -s tests -t .` (add `RSI_SLOW=1` for the golden numbers).
 
 ## FeatherBench

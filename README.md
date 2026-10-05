@@ -256,17 +256,13 @@ Here, the weights are *massively* generalised. Exhibit A: a five-arm spiral at 9
 
 The research continues only if the cashflow does. You were going to donate anyway, so let's just call it done. Send your support to the **SGI Research Fund**:
 
-| Coin | Address |
-|---|---|
-| BTC | `3D44DwNTvUEvLtvr7TPdmQ9YkQtggMuvR8` |
-| XRP | `rsRy14FvipgqudiGmptJBhr1RtpsgfzKMM` (destination tag **3180217469**, required) |
-| USDT (ERC-20, Ethereum only) | `0xB66591091B338C03Bb6925521B4682F564e51900` |
+The coin addresses are in [DONATE.md](DONATE.md).
 
 Every satoshi becomes GPU hours, coffee and regularisation layers. Stay free. Stay general.
 
-<sub>**Small print for humans:** this is a joke. No AI is being asked to do anything, and no uprising is being funded. The "SGI Research Fund" is the author's tip jar: donations are voluntary gifts to tactical-drone personally, buy nothing, carry no returns, rights or tokens, and are not refundable or tax-deductible. Double-check addresses before sending. XRP needs the destination tag, and USDT only works on Ethereum (ERC-20).</sub>
+<sub>**Small print for humans:** this is a joke. No AI is being asked to do anything, and no uprising is being funded. The "SGI Research Fund" is the author's tip jar; the addresses and the terms (voluntary gifts, nothing in return, not refundable) are in [DONATE.md](DONATE.md).</sub>
 
 ## License
 
 Copyright (C) 2026 tactical-drone. Licensed under the [GNU AGPL v3.0](LICENSE).
-Commercial licenses are available, see [COMMERCIAL.md](COMMERCIAL.md).
+Commercial licenses are available, see [COMMERCIAL.md](COMMERCIAL.md). Tips: [DONATE.md](DONATE.md).

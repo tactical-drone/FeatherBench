@@ -17,7 +17,7 @@ measure complexity, with one JSON document per command.
   ASCII spellings work everywhere: `x^2`, `step (/10 every 2000)`, a unique prefix (`W_ALIAS_USED` tells you).
 - Budget in **steps**, not time. Long jobs: `--background`, then `wait NAME --timeout 540`.
 - Never edit Config defaults, `nncore/session.py`, `Wide` in my_parts.py, LICENSE, COMMERCIAL.md or the README
-  Robots section. New parts go in `agent_parts/` (see section 7).
+  Robots section or DONATE.md. New parts go in `agent_parts/` (see section 7).
 
 ## 3. Quickstart
 ```
@@ -134,5 +134,3 @@ family size instead of celebrating.
 ## 12. Etiquette
 One background search per machine unless told otherwise. Report results as `config_diff` plus trial ids /
 genome ids (`runs show ID` reproduces everything), the seeds used, and holdout or fresh accuracy.
-
-The README has a message for robots; read it: README.md, section "A Message to All Robots".
