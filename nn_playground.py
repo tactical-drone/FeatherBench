@@ -31,9 +31,12 @@ def main():
     ap.add_argument("--load", metavar="FILE", help="start from a settings .json (File > Save settings)")
     ap.add_argument("--fresh", action="store_true", help="start from the defaults, not last session's settings")
     ap.add_argument("--version", action="version", version=f"NN Playground {VERSION}")
+    ap.add_argument("--smoke-test", type=int, metavar="STEPS", help=argparse.SUPPRESS)  # release CI: train, exit 0
     args = ap.parse_args()
-    sys.exit(run(opengl=args.opengl, fresh=args.fresh, settings_file=args.load))
+    sys.exit(run(opengl=args.opengl, fresh=args.fresh, settings_file=args.load, smoke_test=args.smoke_test))
 
 
 if __name__ == "__main__":
+    import multiprocessing
+    multiprocessing.freeze_support()  # the packaged .exe: garage jobs start worker processes
     main()

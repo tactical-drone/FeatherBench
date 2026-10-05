@@ -1273,15 +1273,39 @@ def _install_error_handler(window):
     sys.excepthook = hook
 
 
-def run(opengl=False, cfg=None, fresh=False, settings_file=None):
+def run(opengl=False, cfg=None, fresh=False, settings_file=None, smoke_test=None):
     """Open the window. cfg overrides everything; otherwise the last session's
-    settings are restored unless fresh is set. settings_file loads a saved .json."""
+    settings are restored unless fresh is set. settings_file loads a saved .json.
+    smoke_test=N (release CI): default settings, train N steps, exit 0 if it all worked."""
     pg.setConfigOptions(imageAxisOrder="row-major", antialias=True, useOpenGL=opengl,
                         background=theme.WINDOW_BG, foreground=theme.WINDOW_FG)
     app = pg.mkQApp("NN Playground")
     icon = REPO_ROOT / "brand" / "logo-256.png"
     if icon.exists():
         app.setWindowIcon(QtGui.QIcon(str(icon)))
+    if smoke_test:
+        import tempfile
+        ini = QtCore.QSettings(str(Path(tempfile.mkdtemp()) / "smoke.ini"), QtCore.QSettings.Format.IniFormat)
+        w = Playground(cfg, restore=False, settings=ini)
+        w.show()
+
+        def smoke():
+            w._train(int(smoke_test))
+            w.render()
+            ev = w.session.evaluate()["train"]
+            ok = w.session.step_count == int(smoke_test) and math.isfinite(ev["loss"]) and not w.diverged
+            try:  # the garage path: console cells in worker processes (frozen multiprocessing)
+                import rsi
+                os.environ["RSI_STORE"] = tempfile.mkdtemp()
+                res = rsi.run(config=configio.config_to_dict(w.session.cfg), steps=30, seeds="0-1", workers=2,
+                              cache=False)
+                ok = ok and [c.get("status") for c in res["cells"]] == ["ok", "ok"]
+            except Exception:
+                traceback.print_exc()
+                ok = False
+            app.exit(0 if ok else 3)
+        QtCore.QTimer.singleShot(200, smoke)
+        return app.exec()
     w = Playground(cfg, restore=cfg is None and not fresh)
     _install_error_handler(w)
     if settings_file:

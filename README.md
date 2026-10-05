@@ -48,6 +48,11 @@ publishing anything on their behalf.
 
 ## Install and run
 
+**Windows, no Python:** download `FeatherBench-v<version>-windows-x64.zip` from the
+[latest release](https://github.com/tactical-drone/FeatherBench/releases/latest), unzip it,
+run `FeatherBench.exe`. For the rsi console, AI agents and FeatherBench submissions, use the
+source:
+
 Needs Python 3.10 or newer. Tested on Windows 11; the code is plain Qt and PyTorch.
 
     pip install -r requirements.txt
