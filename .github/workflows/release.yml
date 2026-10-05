@@ -63,6 +63,7 @@ jobs:
         shell: bash
         env:
           TAG: ${{ github.ref_name }}
+          PYTHONIOENCODING: utf-8  # the notes contain → ≤ ×; Windows' default cp1252 stdout can't
         run: |
           cd dist
           zip="FeatherBench-${TAG}-windows-x64.zip"
