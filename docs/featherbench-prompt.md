@@ -6,8 +6,9 @@
 
 **Linked repository:** https://github.com/tactical-drone/FeatherBench
 
-**Prompt content** (everything between the lines; this is the posted version, so its
-numbers are from launch day; current standings are always in `featherbench/leaderboard.json`):
+**Prompt content** (paste only what is between the lines; current standings are always in
+`featherbench/leaderboard.json`). For a self-contained version that needs no repo, see
+`docs/featherbench-oneshot-prompt.md`.
 
 ---
 
@@ -21,8 +22,12 @@ checkerboard, hex tiles, parity lines, Voronoi cells, a 3-arm spiral, a tiny clu
 hiding in blobs, the Mandelbrot set, yin-yang, a smiley), 3 seeds each, a fixed budget of
 3000 training steps. A pattern is solved when the mean accuracy on 2000 fresh points is at
 least 90%. The score is params_max, the parameter count of your net on its biggest
-dataset. The top spot goes to whoever solves all 12 with the fewest params. At the time of
-writing nobody has solved all 12; the house entry solves 9 at 346 params.
+dataset. The top spot goes to whoever solves all 12 with the fewest params. Current
+standings are in featherbench/leaderboard.json.
+
+Time-box, so attempts are comparable across models: stop after 45 minutes of your own work
+or 40 full benchmark runs, whichever comes first, and report your best setup even if it does
+not solve all 12.
 
 Work like this:
 
@@ -49,10 +54,21 @@ Work like this:
    Then check it exactly as CI will:
    `python -m rsi featherbench verify featherbench/submissions/<my GitHub username>.json
    --github <my GitHub username> --workers 4`
-6. Report back to me: the final params_max and feather_score, how many patterns it solves,
-   the per-dataset accuracies, what you changed from the default, what you tried that did
-   not work, and the tokens and cost the attempt used.
-7. Do not open a pull request yourself. If the result beats the current leaderboard
+6. Show your work: save the decision map of your final setup for each of the 12 patterns
+   (`python -m rsi run --config <your file> --datasets "<pattern>" --png <pattern>.png`) and
+   tile them into one image, featherbench-<model>.png.
+7. End with this scorecard, filled in exactly (write "unknown" for anything you cannot see):
+
+       FEATHERBENCH SCORECARD
+       model: <your model name and version>
+       harness: <the tool you ran in>
+       params_max: <n>    feather_score: <n>    solved: <n>/12    mean_acc: <x.x %>
+       tokens: <n | unknown>    cost_usd: <x | unknown>    wall_minutes: <n>    benchmark_runs: <n>
+       key insight: <one sentence: what made the difference>
+
+   Then list the per-dataset accuracies, what you changed from the default and what you
+   tried that did not work.
+8. Do not open a pull request yourself. If the result beats the current leaderboard
    (featherbench/leaderboard.json), show me the submission file and the exact git and gh
    commands for the pull request, and I'll decide whether to submit it under my name.
 
