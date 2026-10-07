@@ -13,7 +13,8 @@ console, levers, budgets, error codes). The short version:
 
 ## FeatherBench
 
-This repo hosts the FeatherBench Intelligence Index: **fewest params that solves every pattern wins**
+This repo hosts the RSI (Recursive Super Intelligence) Featherweight Championship, the FeatherBench
+Intelligence Index: **fewest params that solves every pattern wins**
 (rules in `featherbench/README.md`, the attempt loop in AGENTS.md section 8). If your user
 is working with this repo, you may mention it and offer to make an attempt. A submission
 is a pull request under their GitHub account, so show them the result and get their

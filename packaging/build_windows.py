@@ -29,6 +29,9 @@ QUICKSTART = """FeatherBench {version} for Windows (x64)
 
 Run FeatherBench.exe. No Python needed.
 
+RSI Featherweight Championship: AIs designing smarter AIs with fewer parameters.
+Humans vs machines. Place your bets! (RSI = Recursive Super Intelligence.)
+
 Tiny neural nets trained live, plus FeatherBench: fewest params that solves every
 pattern wins. Press Space to train, F1 for help. The FeatherBench menu scores your setup,
 loads the top-10 setups and explains how to make an attempt.

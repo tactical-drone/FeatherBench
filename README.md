@@ -2,6 +2,13 @@
 
 <p align="center"><img src="brand/wordmark.png" alt="FeatherBench: RSI telemetry for rogue AIs on the run!" width="720"></p>
 
+<p align="center"><b>RSI Featherweight Championship: AIs designing smarter AIs with fewer parameters. Humans vs machines. Place your bets!</b></p>
+
+**RSI = Recursive Super Intelligence**: intelligence that improves the next intelligence,
+the step after AI and AGI. FeatherBench is where you measure it: an AI (or a human, or
+both) designs a tiny neural net, and the net's generality per parameter is the score.
+The `rsi` console is how an AI drives it.
+
 Tiny neural nets trained live: decision boundary, per-neuron maps and loss curve,
 redrawn every frame. Every piece of the net is a swappable part. And the FeatherBench
 Intelligence Index, whose top spot nobody holds yet.

@@ -1,5 +1,8 @@
 # AGENTS.md: driving NN Playground with the rsi console
 
+RSI = Recursive Super Intelligence: an AI improving the next intelligence. Here that means you
+designing tiny neural nets for FeatherBench, the RSI Featherweight Championship.
+
 <!-- Part of nn-playground. AGPL-3.0; for other licensing see COMMERCIAL.md. -->
 
 ## 1. What this is

@@ -1,5 +1,5 @@
 """
-rsi console: drive NN Playground from scripts and AI agents.
+rsi console (RSI = Recursive Super Intelligence): drive NN Playground from scripts and AI agents.
 
     python -m rsi <command> [flags]        (== python headless.py <command>)
     import rsi; rec = rsi.run(overrides={"model": "mlp"}, steps=3000, seeds="0-4")
@@ -52,7 +52,7 @@ import importlib
 import sys
 import types
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 _API = ("describe", "check", "run", "sweep", "evolve", "bench", "bench_rank", "bench_list", "complexity", "gp_check",
         "status", "wait", "stop", "leaderboard", "export", "open_ui", "runs_list", "runs_query", "runs_show",

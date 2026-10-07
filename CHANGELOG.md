@@ -7,6 +7,14 @@ plus a code fingerprint, so you can tell which version produced a number.
 
 ## Unreleased
 
+## 0.3.0 (2026-10-07)
+
+- The RSI release. RSI = Recursive Super Intelligence: intelligence that improves the next
+  intelligence. FeatherBench is now billed as the **RSI Featherweight Championship: AIs
+  designing smarter AIs with fewer parameters. Humans vs machines. Place your bets!**
+  The README, both BridgeBench prompts, AGENTS.md, CLAUDE.md, the rsi console and the app
+  (window title "FeatherBench // RSI playground", About box) use the name. No scoring changes.
+
 ## 0.2.0 (2026-10-07)
 
 - FeatherBench ranks the AIs too. Submissions can carry a self-reported `meta.attempt`

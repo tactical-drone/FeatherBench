@@ -29,7 +29,7 @@ from .painters import BOUNDARY_PAINTERS, NEURON_PAINTERS, make_grid
 
 VERSION = nncore.__version__
 MAX_THUMBS = 32
-TITLE = "NN Playground // Jarvis build"
+TITLE = "FeatherBench // RSI playground"
 LAYERS_TIP = "e.g. 4,4   or   8:sin,4:tanh   or empty for a linear model"
 SETTINGS_ORG, SETTINGS_APP = "tactical-drone", "NN Playground"
 
@@ -820,7 +820,7 @@ class Playground(QtWidgets.QMainWindow):
     def show_about(self):
         QtWidgets.QMessageBox.about(
             self, "About", f"<p><img src='{(REPO_ROOT / 'brand' / 'icon-64.png').as_posix()}' width='64'></p>"
-            f"<h3>{TITLE}</h3><p>Version {VERSION}. Tiny neural nets, trained live. Home of "
+            f"<h3>{TITLE}</h3><p>Version {VERSION}. Tiny neural nets, trained live. RSI = Recursive Super Intelligence; this is the home of "
             "<b>FeatherBench</b>: fewest params that solves every pattern wins.</p>"
             "<p>Copyright (C) 2026 tactical-drone. Licensed under the GNU AGPL v3.0; "
             "commercial licenses available (see COMMERCIAL.md).</p>")

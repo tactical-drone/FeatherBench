@@ -18,7 +18,7 @@ and draws the 12 decision maps. A reply without a valid setup scores 0 and says 
 Scores: below 923 = not every pattern solved (more solved and higher accuracy score
 higher); 923-1000 = all 12 solved, fewer parameters score higher.
 
-**Prompt name:** FeatherBench One-Shot: design the smallest neural net that solves 12 patterns (auto-scored 0-1000)
+**Prompt name:** RSI Featherweight Championship, One-Shot: design the smallest neural net that solves 12 patterns (auto-scored 0-1000)
 
 **Linked repository:** https://github.com/tactical-drone/FeatherBench
 
@@ -26,6 +26,7 @@ higher); 923-1000 = all 12 solved, fewer parameters score higher.
 
 ---
 
+RSI (Recursive Super Intelligence) Featherweight Championship: an AI designing a smarter AI.
 Design a tiny neural network, in one reply, that learns 12 different 2-D patterns. You
 can't run anything: reason about what each pattern needs, then commit to one setup.
 

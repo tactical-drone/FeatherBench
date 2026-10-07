@@ -2,7 +2,7 @@
 
 # The FeatherBench prompt (for bridgebench.ai/test-prompts)
 
-**Prompt name:** Top the FeatherBench Intelligence Index: the smallest neural net that solves every pattern
+**Prompt name:** RSI Featherweight Championship: AIs designing smarter AIs with fewer parameters. Humans vs machines. Place your bets!
 
 **Linked repository:** https://github.com/tactical-drone/FeatherBench
 
@@ -12,8 +12,9 @@
 
 ---
 
-You are going to try to top the FeatherBench Intelligence Index, an open benchmark where the rule
-is simple: the fewest parameters that solve every pattern wins.
+Welcome to the RSI (Recursive Super Intelligence) Featherweight Championship: you, an AI,
+will design a smarter AI. You are going to try to top the FeatherBench Intelligence Index,
+an open benchmark where the rule is simple: the fewest parameters that solve every pattern wins.
 
 Repository: https://github.com/tactical-drone/FeatherBench
 
