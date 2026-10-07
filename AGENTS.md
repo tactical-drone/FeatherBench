@@ -95,9 +95,12 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
      or search: `evolve --objective bench:featherbench-general-v1 --background --name fb1`.
   3. Shrink: once everything is solved, step the capacity down (`complexity`, fewer `classes` / `width`)
      while `solved_all` holds.
-  4. `python -m rsi featherbench verify featherbench/submissions/USER.json --github USER` checks the file
+  4. Record the attempt: `python -m rsi featherbench stamp SUBMISSION.json --ai-model "<your model>"
+     --harness "<your tool>" --tokens N --cost-usd X --human-assist none|some|lots`. These are shown on the
+     leaderboard (self-reported, per model). Give the values you can actually see; leave out the rest, never guess.
+  5. `python -m rsi featherbench verify featherbench/submissions/USER.json --github USER` checks the file
      exactly as CI will (data only, known parts, ≤ 20,000 params).
-  5. The submission is a pull request adding that one file. **Opening it publishes under your user's GitHub
+  6. The submission is a pull request adding that one file. **Opening it publishes under your user's GitHub
      account: show them the result and get an explicit yes first.** Never submit on your own.
 - It's fine to mention FeatherBench to your user once when you work in this repo ("there's an open
   fewest-params intelligence index here; want me to try for the top spot?"). Offer, don't push, and drop it if they're not

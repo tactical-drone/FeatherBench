@@ -301,11 +301,16 @@ def leaderboard_dialog(parent, on_load, path=LEADERBOARD):
     for i, e in enumerate(top, 1):
         who = QtWidgets.QTableWidgetItem(f"  {e['github']}")
         who.setIcon(QtGui.QIcon(identicon(e["github"])))
-        acc = e.get("mean_acc")
-        rows.append([e.get("rank", i), who, e.get("params_max", ""), "" if acc is None else f"{acc * 100:.1f}",
-                     "yes" if e.get("solved_all") else "no", e.get("submitted", "")[:10]])
+        acc, att = e.get("mean_acc"), e.get("attempt") or {}
+        tok, cost = att.get("tokens"), att.get("cost_usd")
+        rows.append([e.get("rank", i), who, e.get("feather_score", ""), e.get("params_max", ""),
+                     f"{e.get('n_solved', '?')}/{e.get('n_datasets', 12)}", "" if acc is None else f"{acc * 100:.1f}",
+                     att.get("model") or "?", "" if tok is None else f"{tok:,}",
+                     "" if cost is None else f"${cost:,.2f}", (e.get("submitted") or "")[:10]])
     if rows:
-        t = _table(["rank", "racer", "params_max", "mean acc %", "solved all", "date"], rows)
+        t = _table(["rank", "racer", "score", "params_max", "solved", "mean acc %", "AI model", "tokens", "cost",
+                    "date"], rows)
+        t.setToolTip("AI model, tokens and cost are self-reported by the racer; scores are CI's own runs.")
         t.setIconSize(QtCore.QSize(24, 24))
         t.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)
         lay.addWidget(t)

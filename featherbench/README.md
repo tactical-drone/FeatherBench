@@ -41,6 +41,29 @@ most 64 KB, using only fields and parts that exist in this repo, with at most 20
 params on any dataset. It never contains or names code. Want a new activation, layer or
 model? Contribute it as a normal pull request first; once merged, everyone can use it.
 
+## Attempt details (model, tokens, cost)
+
+Say who found the setup and what it took, in the settings file's `meta.attempt`:
+
+    python -m rsi featherbench stamp featherbench/submissions/YOU.json       --ai-model "Claude Opus 5.5" --harness "Claude Code" --tokens 1200000 --cost-usd 4.20 --human-assist none
+
+`model` is the AI that drove the attempt (or `human`), `harness` the tool it ran in,
+`tokens` the total for the attempt, `cost_usd` what it cost, `human_assist` none / some /
+lots. All optional, all **self-reported**: CI can't check them, and the leaderboard says
+so. The leaderboard also has a `models` table: each AI model's best entry, how many
+attempts, and their median tokens and cost. That's the other half of FeatherBench: it
+ranks the nets and, through the attempts, the AIs that design them.
+
+Every entry also gets a `feather_score` from 0 to 1000 that orders exactly like the
+ranking (below 923: not every pattern solved; 923-1000: all 12 solved, fewer params higher).
+
+## One-shot mode (no tools, no repo)
+
+`docs/featherbench-oneshot-prompt.md` is a self-contained prompt any model can answer in
+one reply with one JSON setup; `python -m rsi featherbench score-answer reply.txt`
+scores the reply deterministically (0 with a reason if it's invalid). It's built for model
+benchmarks that re-run fixed tests over time.
+
 ## How scoring stays honest
 
 - The pull request check runs on `pull_request` with a read-only token and no secrets. It

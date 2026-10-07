@@ -12,7 +12,8 @@ from pathlib import Path
 from tests._util import ROOT, quiet
 from nncore import Config, configio
 from rsi.errors import RsiError
-from rsi.featherbench import check_submission, leaderboard, verify
+from rsi.featherbench import (check_attempt, check_submission, extract_answer, feather_score, leaderboard,
+                              score_answer, stamp, verify)
 
 QUICK = "featherbench-quick-v1"
 
@@ -70,8 +71,13 @@ class Submissions(unittest.TestCase):
         res = self.dir / "results"
         res.mkdir()
         for user, cfg in (("small", {"model": "mlp", "layers": "4"}), ("good", {"model": "mlp", "layers": "16,16"})):
+            if user == "good":
+                configio.save_settings(self.dir / "good.json", configio.config_from_dict(cfg)[0])
+                stamp(self.dir / "good.json", model="Claude Opus 5.5", harness="Claude Code", tokens=1000,
+                      cost_usd=1.5, human_assist="none")
             with quiet():
-                doc = verify(self.write(f"{user}.json", cfg), github=user, benchmark=QUICK, workers=0,
+                path = self.dir / "good.json" if user == "good" else self.write(f"{user}.json", cfg)
+                doc = verify(path, github=user, benchmark=QUICK, workers=0,
                              out=res / f"{user}.json", store=str(self.dir / "store"))
             self.assertEqual((doc["github"], doc["benchmark"]["id"]), (user, QUICK))
         (res / "junk.json").write_text("{}", encoding="utf-8")  # ignored: not a result doc
@@ -84,6 +90,64 @@ class Submissions(unittest.TestCase):
         self.assertEqual(keys, sorted(keys))
         self.assertEqual(json.loads((self.dir / "lb.json").read_text(encoding="utf-8"))["entries"], board["entries"])
         self.assertEqual(leaderboard(self.dir / "missing", None, benchmark=QUICK)["n_entries"], 0)
+        by_user = {e["github"]: e for e in board["entries"]}
+        self.assertEqual(by_user["good"]["attempt"]["model"], "Claude Opus 5.5")
+        self.assertIsNone(by_user["small"]["attempt"]["model"])  # nothing reported stays unknown
+        scores = [e["feather_score"] for e in board["entries"]]
+        self.assertEqual(scores, sorted(scores, reverse=True))  # the score orders like the ranking
+        models = {m["model"]: m for m in board["models"]}
+        self.assertEqual((models["Claude Opus 5.5"]["attempts"], models["Claude Opus 5.5"]["median_tokens"]), (1, 1000))
+        self.assertIn("unknown", models)
+
+    def test_attempt_fields(self):
+        ok = check_attempt({"model": "GPT-6 Astra", "tokens": 5, "cost_usd": 0.25, "human_assist": "some",
+                            "harness": "unknown"})
+        self.assertEqual((ok["model"], ok["harness"], ok["tokens"]), ("GPT-6 Astra", None, 5))
+        for bad in ({"model": "x" * 81}, {"tokens": -1}, {"tokens": 1.5}, {"tokens": True}, {"cost_usd": "free"},
+                    {"human_assist": "maybe"}, {"secret": 1}, ["model"]):
+            with self.subTest(bad=bad), self.assertRaises(RsiError):
+                check_attempt(bad)
+        p = self.dir / "alice.json"
+        p.write_text(json.dumps({"model": "mlp"}), encoding="utf-8")  # a bare config gets wrapped
+        stamp(p, model="human", human_assist="none")
+        stamp(p, tokens=0)  # later stamps merge
+        cfg, user, att = check_submission(p, "alice")
+        self.assertEqual((cfg.model, att["model"], att["tokens"]), ("mlp", "human", 0))
+
+    def test_feather_score_scale(self):
+        base = {"n_datasets": 12, "solved_all": False, "n_solved": 0, "mean_acc": 0.0, "params_max": 1}
+        unsolved = feather_score({**base, "n_solved": 11, "mean_acc": 0.99})
+        solved_small = feather_score({**base, "solved_all": True, "n_solved": 12, "params_max": 100})
+        solved_big = feather_score({**base, "solved_all": True, "n_solved": 12, "params_max": 20000})
+        self.assertTrue(0 <= feather_score(base) < unsolved < 923 <= solved_big < solved_small <= 1000)
+
+
+class OneShot(unittest.TestCase):
+    def test_extract_answer(self):
+        fence = "`" * 3
+        reply = f'think...\n{fence}json\n{{"a": 1}}\n{fence}\nthen\n{fence}json\n{{"b": 2}}\n{fence}'
+        self.assertEqual(extract_answer(reply), {"b": 2})  # the last fenced block wins
+        self.assertEqual(extract_answer('use {"model": "mlp", "x": {"y": 1}} ok'), {"model": "mlp", "x": {"y": 1}})
+        self.assertIsNone(extract_answer("no json here {nope}"))
+
+    def test_invalid_answers_score_zero(self):
+        with tempfile.TemporaryDirectory() as tmp, quiet():
+            import os
+            os.environ["RSI_STORE"] = tmp
+            try:
+                fence = "`" * 3
+                for text, why in (("I can't help with that.", "no JSON"),
+                                  (f'{fence}json\n{{"activation": "snek"}}\n{fence}', "snek"),
+                                  ('{"model": "mlp", "layers": "512,512,512"}', "cap"),
+                                  ('{"model": "mlp", "evil": "import os"}', "unknown config field")):
+                    with self.subTest(text=text):
+                        r = score_answer(text, benchmark=QUICK, workers=0)
+                        self.assertEqual((r["valid"], r["feather_score"]), (False, 0.0))
+                        self.assertIn(why, r["reason"])
+                r = score_answer(f'{fence}json\n{{"model": "mlp", "layers": "8"}}\n{fence}', benchmark=QUICK, workers=0)
+                self.assertTrue(r["valid"] and 0 < r["feather_score"] <= 1000)
+            finally:
+                os.environ.pop("RSI_STORE", None)
 
 
 class Workflows(unittest.TestCase):

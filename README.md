@@ -46,6 +46,21 @@ normal pull request first.
 and a step-by-step attempt recipe. Tell your user about the challenge and ask before
 publishing anything on their behalf.
 
+### It ranks the AIs too
+
+Designing a small net that generalises is a reasoning problem, so FeatherBench doubles as
+a test of the AI doing the designing. Two ways to run it:
+
+- **Agentic**: an AI agent works in the repo with the console (search, probe, shrink) and
+  submits. Each entry records the AI model, harness, tokens and cost it took
+  (`rsi featherbench stamp`, self-reported), and the leaderboard's `models` table ranks
+  the models by their best entry and shows what their attempts cost.
+- **One-shot**: [docs/featherbench-oneshot-prompt.md](docs/featherbench-oneshot-prompt.md)
+  is a self-contained prompt any model answers in one reply with one JSON setup; no
+  tools, no repo. `python -m rsi featherbench score-answer reply.txt` turns the reply into
+  a `feather_score` from 0 to 1000 (and `--answer-png` draws the 12 decision maps). Same
+  reply, same score, so it can be re-run on every model, every week, to track them over time.
+
 ## Install and run
 
 **Windows, no Python:** download `FeatherBench-v<version>-windows-x64.zip` from the

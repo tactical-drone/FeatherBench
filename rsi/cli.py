@@ -27,7 +27,8 @@ SCHEMAS = {"describe": "rsi/describe@1", "schema": "rsi/schema@1", "check": "rsi
            "runs list": "rsi/runs@1", "runs query": "rsi/query@1", "runs show": "rsi/trial@1",
            "runs stats": "rsi/stats@1", "replay": "rsi/replay@1", "doctor": "rsi/doctor@1", "gp check": "rsi/gp-check@1",
            "bench": "rsi/bench@1", "bench list": "rsi/bench-list@1", "bench rank": "rsi/bench-leaderboard@1",
-           "bench leaderboard": "featherbench/leaderboard@1",
+           "bench leaderboard": "featherbench/leaderboard@1", "bench stamp": "featherbench/attempt@1",
+           "bench score-answer": "featherbench/oneshot@1",
            "complexity": "rsi/complexity@1"}
 GLOBAL_VALUE = ("--format", "--log", "--parts", "--store")
 GLOBAL_FLAG = ("--pretty", "--unicode", "--no-cache", "--full")
@@ -226,7 +227,8 @@ def build_parser():
 
     p = sub.add_parser("bench", help="FeatherBench (fewest params wins): bench [list | rank FILE... | --benchmark ID]; "
                                      "alias: featherbench")
-    p.add_argument("action", nargs="?", help="list | rank | verify | leaderboard (omit to run a benchmark)")
+    p.add_argument("action", nargs="?", help="list | rank | verify | leaderboard | stamp | score-answer "
+                                             "(omit to run a benchmark)")
     p.add_argument("files", nargs="*")
     add_config_flags(p)
     p.add_argument("--benchmark", default="featherbench-general-v1",
@@ -239,6 +241,12 @@ def build_parser():
     p.add_argument("--result-out", metavar="FILE", help="verify: write the CI result doc here")
     p.add_argument("--results", metavar="DIR", help="leaderboard: CI result docs (default featherbench/results)")
     p.add_argument("--board-out", metavar="FILE", help="leaderboard: output (default featherbench/leaderboard.json)")
+    p.add_argument("--ai-model", help="stamp: the AI model that made the attempt (or 'human')")
+    p.add_argument("--harness", help="stamp: the agent / tool, e.g. 'Claude Code'")
+    p.add_argument("--tokens", type=int, help="stamp: total tokens the attempt used")
+    p.add_argument("--cost-usd", type=float, help="stamp: what the attempt cost, US dollars")
+    p.add_argument("--human-assist", choices=["none", "some", "lots"], help="stamp: how much a human helped")
+    p.add_argument("--answer-png", metavar="FILE", help="score-answer: also draw the 12 decision maps into FILE")
 
     p = sub.add_parser("complexity", help="empirical complexity exponent over a dataset family")
     add_config_flags(p)
@@ -569,6 +577,19 @@ def dispatch(a, g, argv, stdin, out):
             from . import featherbench as fb
             return "bench", SCHEMAS["bench"], fb.verify(a.files[0], github=a.github, benchmark=a.benchmark,
                                                          workers=a.workers, out=a.result_out, on_event=log)
+        if a.action == "score-answer":
+            if len(a.files) != 1:
+                raise RsiError("featherbench score-answer needs one file: the model's raw reply", "E_USAGE")
+            from . import featherbench as fb
+            return "bench", SCHEMAS["bench score-answer"], fb.score_answer(
+                a.files[0], benchmark=a.benchmark, workers=a.workers, png=a.answer_png, on_event=log)
+        if a.action == "stamp":
+            if len(a.files) != 1:
+                raise RsiError("featherbench stamp needs exactly one settings file", "E_USAGE")
+            from . import featherbench as fb
+            return "bench", SCHEMAS["bench stamp"], {"file": a.files[0], "attempt": fb.stamp(
+                a.files[0], model=a.ai_model, harness=a.harness, tokens=a.tokens, cost_usd=a.cost_usd,
+                human_assist=a.human_assist)}
         if a.action == "leaderboard":
             from . import featherbench as fb
             return "bench leaderboard", SCHEMAS["bench leaderboard"], fb.leaderboard(

@@ -41,11 +41,17 @@ Work like this:
    before throwing parameters at it.
 4. Once a setup solves all 12, shrink it: lower width, classes or layer sizes step by
    step while every pattern stays solved. Fewer parameters is the whole point.
-5. Save the best setup as a settings file and check it exactly as CI will:
+5. Save the best setup as a settings file, record who made the attempt and what it took
+   (your model name, the tool you ran in, total tokens and cost in USD if you can see
+   them, otherwise leave them out; never guess):
+   `python -m rsi featherbench stamp featherbench/submissions/<my GitHub username>.json
+   --ai-model "<your model>" --harness "<your tool>" --tokens N --cost-usd X --human-assist none`
+   Then check it exactly as CI will:
    `python -m rsi featherbench verify featherbench/submissions/<my GitHub username>.json
    --github <my GitHub username> --workers 4`
-6. Report back to me: the final params_max, how many patterns it solves, the per-dataset
-   accuracies, what you changed from the default, and what you tried that did not work.
+6. Report back to me: the final params_max and feather_score, how many patterns it solves,
+   the per-dataset accuracies, what you changed from the default, what you tried that did
+   not work, and the tokens and cost the attempt used.
 7. Do not open a pull request yourself. If the result beats the current leaderboard
    (featherbench/leaderboard.json), show me the submission file and the exact git and gh
    commands for the pull request, and I'll decide whether to submit it under my name.

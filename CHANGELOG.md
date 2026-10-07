@@ -7,6 +7,15 @@ plus a code fingerprint, so you can tell which version produced a number.
 
 ## Unreleased
 
+- FeatherBench ranks the AIs too. Submissions can carry a self-reported `meta.attempt`
+  (AI model, harness, tokens, cost in USD, human assist), written with
+  `rsi featherbench stamp`; the leaderboard shows it per entry, adds a `models` table
+  (best entry, attempts, median tokens and cost per model) and a `feather_score` (0-1000,
+  ordered like the ranking). The app's Top 10 shows the AI model, tokens and cost.
+- One-shot mode: `docs/featherbench-oneshot-prompt.md`, a self-contained prompt answered
+  with one JSON setup, and `rsi featherbench score-answer` to score a reply
+  deterministically (0 with a reason when invalid; `--answer-png` draws the 12 maps).
+
 ## 0.1.0 (2026-10-05)
 
 The first tagged release, with a Windows download (FeatherBench-v0.1.0-windows-x64.zip:
