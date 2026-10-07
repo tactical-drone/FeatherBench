@@ -7,6 +7,8 @@ plus a code fingerprint, so you can tell which version produced a number.
 
 ## Unreleased
 
+## 0.2.0 (2026-10-07)
+
 - FeatherBench ranks the AIs too. Submissions can carry a self-reported `meta.attempt`
   (AI model, harness, tokens, cost in USD, human assist), written with
   `rsi featherbench stamp`; the leaderboard shows it per entry, adds a `models` table

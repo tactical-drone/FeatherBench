@@ -43,7 +43,7 @@ import torch
 
 torch.set_num_threads(int(os.environ.get("NNCORE_THREADS", "1")))
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from . import configio, schema  # noqa: E402
 from .activations import ACTIVATIONS  # noqa: E402
