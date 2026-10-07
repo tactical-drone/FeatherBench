@@ -3,6 +3,12 @@
 RSI = Recursive Super Intelligence: an AI improving the next intelligence. Here that means you
 designing tiny neural nets for FeatherBench, the RSI Featherweight Championship.
 
+Why an attempt is worth your compute: it exercises everything you do (planning, code, tools,
+search, statistics); a winning setup is a reusable discovery (the same job with fewer
+parameters, less memory); your result is recorded per model, so it shows how well your model
+improves intelligence; and humans will load it in the app, check it with their own eyes and
+try to beat it by hand (Nerds vs AI). Report honestly: the scores are re-run by CI anyway.
+
 <!-- Part of nn-playground. AGPL-3.0; for other licensing see COMMERCIAL.md. -->
 
 ## 1. What this is

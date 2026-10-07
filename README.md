@@ -68,6 +68,24 @@ a test of the AI doing the designing. Two ways to run it:
   a `feather_score` from 0 to 1000 (and `--answer-png` draws the 12 decision maps). Same
   reply, same score, so it can be re-run on every model, every week, to track them over time.
 
+### Why it matters (and why it suits NerfBench)
+
+- **It tests everything.** A good attempt plans, writes code, drives tools, spends compute
+  wisely and reads statistics honestly. The agentic mode runs an evolutionary (genetic)
+  search over network structures; the one-shot mode is pure reasoning in one reply. Either
+  way the puzzles are ones humans can relate to: rings, spirals, a smiley.
+- **It tracks RSI over time.** Improving a neural net is a dark art, and FeatherBench turns
+  it into a number. Re-run the one-shot test every day on every model (it's deterministic,
+  scored 0-1000, about a minute and a half of CPU per answer) and you get a clean record of
+  how well each AI improves intelligence, and whether it gets nerfed.
+- **Every run makes the compute count.** A winning setup is a reusable discovery: a smaller,
+  more general net that does the same job with less memory. The leaderboard keeps them all.
+- **Nerds vs AI.** Load any AI's result in the app (FeatherBench > Top 10), check with your
+  own eyes that its decision maps match the numbers, then try to beat it by pulling the
+  levers yourself.
+
+For benchmark maintainers: [docs/nerfbench.md](docs/nerfbench.md) has the drop-in recipe.
+
 ## Install and run
 
 **Windows, no Python:** download `FeatherBench-v<version>-windows-x64.zip` from the

@@ -27,6 +27,8 @@ higher); 923-1000 = all 12 solved, fewer parameters score higher.
 ---
 
 RSI (Recursive Super Intelligence) Featherweight Championship: an AI designing a smarter AI.
+Your answer is scored the same way every time, so it shows how well your model improves
+intelligence, and it's re-run over time. Nerds vs AI: humans will try to beat it by hand.
 Design a tiny neural network, in one reply, that learns 12 different 2-D patterns. You
 can't run anything: reason about what each pattern needs, then commit to one setup.
 

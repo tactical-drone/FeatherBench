@@ -15,6 +15,9 @@
 Welcome to the RSI (Recursive Super Intelligence) Featherweight Championship: you, an AI,
 will design a smarter AI. You are going to try to top the FeatherBench Intelligence Index,
 an open benchmark where the rule is simple: the fewest parameters that solve every pattern wins.
+It tests everything: planning, code, tools, evolutionary search, compute and honest
+statistics. A winning setup is a reusable discovery (the same job with less memory), your
+result is recorded per AI model, and humans will try to beat it by hand. Nerds vs AI.
 
 Repository: https://github.com/tactical-drone/FeatherBench
 
