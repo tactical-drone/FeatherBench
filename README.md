@@ -2,7 +2,7 @@
 
 <p align="center"><img src="brand/wordmark.png" alt="FeatherBench: RSI telemetry for rogue AIs on the run!" width="720"></p>
 
-<p align="center"><b>RSI Featherweight Championship: AIs designing smarter AIs with fewer parameters. Humans vs machines. Place your bets!</b></p>
+<p align="center"><b>Recursive Super Intelligence: Featherweight Championship of the world! Nerds vs AI, place your bets!</b></p>
 
 **RSI = Recursive Super Intelligence**: intelligence that improves the next intelligence,
 the step after AI and AGI. FeatherBench is where you measure it: an AI (or a human, or
