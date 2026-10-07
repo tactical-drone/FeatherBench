@@ -2,7 +2,7 @@
 
 # The FeatherBench prompt (for bridgebench.ai/test-prompts)
 
-**Prompt name:** RSI Featherweight Championship: AIs designing smarter AIs with fewer parameters. Humans vs machines. Place your bets!
+**Prompt name:** Recursive Super Intelligence: Featherweight Championship of the world! Nerds vs AI, place your bets!
 
 **Linked repository:** https://github.com/tactical-drone/FeatherBench
 
