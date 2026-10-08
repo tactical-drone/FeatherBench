@@ -53,6 +53,9 @@ jobs:
 
       - name: Score submissions
         env:
+          # Secret held-out seeds (comma-separated ints). Only this job, on reviewed code from main,
+          # can read it; results publish aggregates only, and the held-out run logs nothing.
+          FEATHERBENCH_HOLDOUT_SEEDS: ${{ secrets.FEATHERBENCH_HOLDOUT_SEEDS }}
           BEFORE: ${{ github.event.before }}
           RESCORE_ALL: ${{ inputs.rescore_all }}
         run: |

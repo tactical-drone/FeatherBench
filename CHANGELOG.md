@@ -7,6 +7,12 @@ plus a code fingerprint, so you can tell which version produced a number.
 
 ## Unreleased
 
+## 0.4.0 (2026-10-08)
+
+- Held-out seeds: CI's leaderboard job also scores every merged submission on secret seeds
+  (the `FEATHERBENCH_HOLDOUT_SEEDS` Actions secret, readable only by that job). Results and
+  the leaderboard carry `holdout` (patterns solved, mean and worst accuracy; never the seeds)
+  and an `overfit` flag; the held-out run logs nothing. The app's Top 10 shows a held-out column.
 - An RSI loop after the RSIGym paper (docs/rsigym.md). `rsi featherbench start` inherits the
   current leader's setup (or `--inherit default` / a racer) and lists its weakest patterns;
   `stamp` records the parent and a compute ledger (trials, cells, CPU seconds since `start`)
