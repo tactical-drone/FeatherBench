@@ -47,6 +47,8 @@ ATTEMPT_FIELDS = {
     "tokens": "total tokens used for the attempt (input + output), an integer",
     "cost_usd": "what the attempt cost in US dollars (model usage; compute you paid for)",
     "human_assist": "'none' (the AI did it alone), 'some' or 'lots'",
+    "parent": "the setup this attempt started from: a leaderboard racer's GitHub name, or 'default'",
+    "compute": "recorded by the rsi console (rsi featherbench start/stamp): trials, cells, cell_seconds",
 }
 HUMAN_ASSIST = ("none", "some", "lots")
 
@@ -82,11 +84,84 @@ def check_attempt(attempt, name="submission"):
             if v not in HUMAN_ASSIST:
                 raise _bad(f"{name}: meta.attempt.human_assist must be one of {list(HUMAN_ASSIST)}", field=k, value=v)
             out[k] = v
+        elif k == "parent":
+            if not isinstance(v, str) or not (v == "default" or GITHUB_USER.match(v)):
+                raise _bad(f"{name}: meta.attempt.parent must be 'default' or a GitHub username", field=k, value=v)
+            out[k] = v
+        elif k == "compute":
+            ok = isinstance(v, dict) and set(v) <= {"trials", "cells", "cell_seconds", "since"} and all(
+                isinstance(v.get(x, 0), (int, float)) and not isinstance(v.get(x, 0), bool) and v.get(x, 0) >= 0
+                for x in ("trials", "cells", "cell_seconds")) and isinstance(v.get("since", ""), str)
+            if not ok:
+                raise _bad(f"{name}: meta.attempt.compute must be {{trials, cells, cell_seconds, since}}", field=k)
+            out[k] = {"trials": int(v.get("trials", 0)), "cells": int(v.get("cells", 0)),
+                      "cell_seconds": round(float(v.get("cell_seconds", 0)), 1), "since": v.get("since") or None}
     return out
 
 
+def _attempt_marker():
+    from . import api
+    return Path(api.open_store_root()) / "featherbench-attempt.json"
+
+
+@closes_stores
+def ledger(since, store=None):
+    """What the rsi console itself recorded since `since` (ISO time): trials, cells actually
+    trained (cache hits excluded) and their CPU seconds. The RSIGym idea of recorded execution:
+    the platform's own record, not the agent's claim."""
+    from . import api
+    st = api.open_store(store)
+    trials = cells = 0
+    secs = 0.0
+    for rec in st.iter_trials():
+        if (rec.get("created") or "") < since:
+            continue
+        trials += 1
+        sm = rec.get("summary") or {}
+        if not rec.get("cached"):
+            cells += int(sm.get("n_cells") or 0)
+            secs += float(sm.get("seconds") or 0.0)
+    return {"trials": trials, "cells": cells, "cell_seconds": round(secs, 1), "since": since}
+
+
+@closes_stores
+def start(parent="leader", out="my_setup.json", *, results=RESULTS, board=LEADERBOARD, store=None):
+    """Begin an attempt from an inherited setup (RSI: accepted changes carry into the next
+    cycle). parent: 'leader' (the current #1), a racer's GitHub name, or 'default'. Writes the
+    starting settings to `out`, records the start time and parent for stamp, and returns the
+    parent's per-pattern weak spots to diagnose first."""
+    from .io import now_iso
+    entries = (json.loads(Path(board).read_text(encoding="utf-8")).get("entries") or []) if Path(board).is_file() else []
+    if parent == "leader":
+        parent = entries[0]["github"] if entries else "default"
+    if parent == "default":
+        cfg, weak = configio.config_from_dict(BASELINE)[0], None
+    else:
+        e = next((x for x in entries if x["github"].lower() == str(parent).lower()), None)
+        if e is None:
+            raise RsiError(f"'{parent}' is not on the leaderboard", "E_NOT_FOUND", value=parent,
+                           did_you_mean=[x["github"] for x in entries[:5]])
+        parent, cfg = e["github"], configio.config_from_dict(e["config"])[0]
+        res = Path(results) / f"{parent}.json"
+        weak = None
+        if res.is_file():
+            per = json.loads(res.read_text(encoding="utf-8")).get("per_dataset") or []
+            weak = sorted(({"dataset": r["dataset"], "fresh_acc_mean": r.get("fresh_acc_mean"), "solved": r.get("solved")}
+                           for r in per), key=lambda r: r["fresh_acc_mean"] or 0)[:4]
+    configio.save_settings(out, cfg, meta={"attempt": {"parent": parent}})
+    marker = {"started": now_iso(), "parent": parent, "file": str(out)}
+    _attempt_marker().parent.mkdir(parents=True, exist_ok=True)
+    _attempt_marker().write_text(json.dumps(marker), encoding="utf-8")
+    return {**marker, "config_diff": configio.config_diff(cfg), "weakest_patterns": weak,
+            "next": ["diagnose the weakest patterns (python -m rsi run --config FILE --datasets \"...\" --seeds 0-2 --png p.png)",
+                     "change one thing at a time, compare on the same seeds, keep light changes",
+                     "python -m rsi featherbench --config FILE --workers 4   (score; cached)",
+                     "python -m rsi featherbench stamp FILE --ai-model ... (adds parent + recorded compute)"]}
+
+
 def stamp(path, **fields):
-    """Write meta.attempt into a settings file (other content kept). Returns the attempt."""
+    """Write meta.attempt into a settings file (other content kept). Returns the attempt.
+    After `featherbench start`, parent and the recorded compute ledger are filled in too."""
     path = Path(path)
     doc = json.loads(path.read_text(encoding="utf-8-sig"))
     if not isinstance(doc, dict):
@@ -94,10 +169,42 @@ def stamp(path, **fields):
     if "format" not in doc and "config" not in doc:  # a bare config: wrap it as a settings doc
         doc = {"format": configio.SETTINGS_FORMAT, "version": configio.SETTINGS_VERSION, "config": doc}
     meta = doc.setdefault("meta", {})
-    merged = {**(meta.get("attempt") or {}), **{k: v for k, v in fields.items() if v is not None}}
+    auto = {}
+    try:
+        marker = json.loads(_attempt_marker().read_text(encoding="utf-8"))
+        auto = {"parent": marker.get("parent"), "compute": ledger(marker["started"])}
+    except (OSError, ValueError, KeyError):
+        pass
+    merged = {**(meta.get("attempt") or {}), **{k: v for k, v in auto.items() if v is not None},
+              **{k: v for k, v in fields.items() if v is not None}}
     meta["attempt"] = check_attempt(merged, path.name)
     configio.atomic_write_text(path, json.dumps(doc, ensure_ascii=False, indent=1) + "\n")
     return meta["attempt"]
+
+
+BASELINE = {}  # the shipped default setup: the "initial system" every attempt is measured against
+
+
+def rsi_index(per_dataset, baseline):
+    """RSI-Index (after RSIGym): the mean, over the benchmark's patterns, of the fraction of the
+    remaining accuracy gap the setup closes over the baseline: (acc - base) / (1 - base).
+    0 = no better than the baseline, 1 = perfect everywhere, negative = worse."""
+    base = {r["dataset"]: r.get("fresh_acc_mean") for r in baseline}
+    terms = []
+    for r in per_dataset:
+        a, b = r.get("fresh_acc_mean"), base.get(r["dataset"])
+        if a is None or b is None:
+            continue
+        terms.append((a - b) / (1 - b) if b < 1 else min(0.0, a - b))
+    return round(sum(terms) / len(terms), 4) if terms else None
+
+
+def baseline_rows(b, store=None, workers=None):
+    """Per-pattern results of the baseline (the default setup) on benchmark b; cached."""
+    from . import api
+    cfg = configio.config_from_dict(BASELINE)[0]
+    doc = api.bench(cfg, b.id, workers, None, cache=True, store=store)
+    return doc["per_dataset"], configio.config_key(cfg)
 
 
 def feather_score(summary):
@@ -171,9 +278,13 @@ def verify(path, *, github=None, benchmark=None, workers=None, out=None, store=N
             raise _bad(f"{Path(path).name}: {n} params on {d}; FeatherBench submissions are capped at "
                        f"{MAX_PARAMS}", value=n)
     doc = api.bench(cfg, b.id, workers, None, cache=False, store=store, on_event=on_event)
+    base, base_key = baseline_rows(b, store, workers)
     doc["github"] = user
-    doc["attempt"] = attempt  # self-reported (model, harness, tokens, cost_usd, human_assist)
+    doc["attempt"] = attempt  # self-reported (model, harness, tokens, cost_usd, human_assist), parent, compute
     doc["feather_score"] = feather_score(doc)
+    doc["rsi_index"] = rsi_index(doc["per_dataset"], base)
+    doc["baseline"] = {"config_key": base_key, "per_dataset": [
+        {"dataset": r["dataset"], "fresh_acc_mean": r.get("fresh_acc_mean")} for r in base]}
     doc["submission_file"] = Path(path).as_posix()
     if out:
         configio.atomic_write_text(out, json.dumps(configio.json_safe(doc), ensure_ascii=False, indent=1) + "\n")
@@ -206,13 +317,19 @@ def leaderboard(results=RESULTS, out=LEADERBOARD, *, benchmark=None, top=None):
                         "n_solved": e["n_solved"], "n_datasets": e["n_datasets"], "describe": e["describe"],
                         "submitted": d.get("submitted"), "config_diff": d.get("config_diff"),
                         "config": d.get("config"), "platform": e["platform"], "torch": e["torch"],
-                        "code_fp": e["code_fp"], "feather_score": feather_score(e),
+                        "code_fp": e["code_fp"], "feather_score": feather_score(e), "rsi_index": d.get("rsi_index"),
                         "attempt": d.get("attempt") or {k: None for k in ATTEMPT_FIELDS}})
+    by_user = {e["github"].lower(): e for e in entries}
+    for e in entries:  # recursive progress: what an attempt added over the setup it inherited
+        parent = ((e["attempt"] or {}).get("parent") or "").lower()
+        p = by_user.get(parent)
+        e["gain_over_parent"] = None if p is None else round(e["feather_score"] - p["feather_score"], 1)
     by_model = {}  # the AI view: each model's best entry, and what its attempts cost
     for e in entries:
         m = (e["attempt"] or {}).get("model") or "unknown"
         b_ = by_model.setdefault(m, {"model": m, "best_rank": e["rank"], "best_github": e["github"],
                                      "best_feather_score": e["feather_score"], "best_params_max": e["params_max"],
+                                     "best_rsi_index": e.get("rsi_index"),
                                      "best_solved": e["n_solved"], "attempts": 0, "tokens": [], "cost_usd": []})
         b_["attempts"] += 1
         for k in ("tokens", "cost_usd"):
@@ -317,7 +434,9 @@ def score_answer(source, *, benchmark=None, workers=None, png=None, store=None, 
         out["reason"] = str(e).replace("answer.json: ", "").replace("answer.json ", "")
         return out
     doc = api.bench(cfg, b.id, workers, None, store=store, on_event=on_event)
-    out.update(valid=True, feather_score=feather_score(doc), config_diff=doc["config_diff"],
+    base, _ = baseline_rows(b, store, workers)
+    out.update(valid=True, feather_score=feather_score(doc), rsi_index=rsi_index(doc["per_dataset"], base),
+               config_diff=doc["config_diff"],
                **{k: doc[k] for k in ("n_solved", "n_datasets", "solved_all", "params_max", "mean_acc", "min_acc",
                                       "per_dataset", "describe")})
     if png:

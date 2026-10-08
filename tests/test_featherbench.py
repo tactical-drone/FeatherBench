@@ -13,7 +13,7 @@ from tests._util import ROOT, quiet
 from nncore import Config, configio
 from rsi.errors import RsiError
 from rsi.featherbench import (check_attempt, check_submission, extract_answer, feather_score, leaderboard,
-                              score_answer, stamp, verify)
+                              rsi_index, score_answer, stamp, start, verify)
 
 QUICK = "featherbench-quick-v1"
 
@@ -98,6 +98,8 @@ class Submissions(unittest.TestCase):
         models = {m["model"]: m for m in board["models"]}
         self.assertEqual((models["Claude Opus 5.5"]["attempts"], models["Claude Opus 5.5"]["median_tokens"]), (1, 1000))
         self.assertIn("unknown", models)
+        self.assertTrue(all(isinstance(e["rsi_index"], float) for e in board["entries"]))
+        self.assertEqual(doc["baseline"]["config_key"], configio.config_key(Config()))
 
     def test_attempt_fields(self):
         ok = check_attempt({"model": "GPT-6 Astra", "tokens": 5, "cost_usd": 0.25, "human_assist": "some",
@@ -120,6 +122,54 @@ class Submissions(unittest.TestCase):
         solved_small = feather_score({**base, "solved_all": True, "n_solved": 12, "params_max": 100})
         solved_big = feather_score({**base, "solved_all": True, "n_solved": 12, "params_max": 20000})
         self.assertTrue(0 <= feather_score(base) < unsolved < 923 <= solved_big < solved_small <= 1000)
+
+
+class RsiLoop(unittest.TestCase):
+    """RSIGym-style loop: inherit a setup, record compute, measure the gap closed."""
+
+    def test_rsi_index(self):
+        base = [{"dataset": "a", "fresh_acc_mean": 0.8}, {"dataset": "b", "fresh_acc_mean": 1.0}]
+        self.assertEqual(rsi_index([{"dataset": "a", "fresh_acc_mean": 0.9}, {"dataset": "b", "fresh_acc_mean": 1.0}], base),
+                         0.25)  # (0.5 + 0) / 2: half of a's gap, nothing left on b
+        self.assertEqual(rsi_index([{"dataset": "a", "fresh_acc_mean": 0.6}], base), -1.0)  # a regression
+        self.assertIsNone(rsi_index([], base))
+
+    def test_start_inherits_and_stamp_records(self):
+        import os
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            os.environ["RSI_STORE"] = str(tmp / "store")
+            try:
+                res = tmp / "results"
+                res.mkdir()
+                champ = configio.config_to_dict(Config(model="mlp", layers="6"))
+                (tmp / "lb.json").write_text(json.dumps({"entries": [{"github": "Champ", "config": champ}]}), "utf-8")
+                (res / "Champ.json").write_text(json.dumps({"per_dataset": [
+                    {"dataset": "Moons", "fresh_acc_mean": 0.99, "solved": True},
+                    {"dataset": "Smiley", "fresh_acc_mean": 0.7, "solved": False}]}), "utf-8")
+                r = start("leader", tmp / "mine.json", results=res, board=tmp / "lb.json")
+                self.assertEqual((r["parent"], r["weakest_patterns"][0]["dataset"]), ("Champ", "Smiley"))
+                self.assertEqual(configio.load_settings(tmp / "mine.json").config.layers, "6")  # inherited
+                with self.assertRaises(RsiError):
+                    start("nobody", tmp / "x.json", results=res, board=tmp / "lb.json")
+                self.assertEqual(start("default", tmp / "d.json", results=res, board=tmp / "lb.json")["parent"], "default")
+                start("Champ", tmp / "mine.json", results=res, board=tmp / "lb.json")
+                import rsi
+                with quiet():
+                    rsi.run(config=str(tmp / "mine.json"), steps=20, seeds="0-1", workers=0, datasets=["Moons"])
+                att = stamp(tmp / "mine.json", model="Claude Opus 5.5")
+                self.assertEqual(att["parent"], "Champ")
+                self.assertEqual((att["compute"]["trials"], att["compute"]["cells"]), (1, 2))
+                self.assertGreaterEqual(att["compute"]["cell_seconds"], 0)  # 20 steps round to ~0 s
+                self.assertEqual(check_submission(tmp / "mine.json")[2]["parent"], "Champ")  # still a valid submission
+            finally:
+                os.environ.pop("RSI_STORE", None)
+
+    def test_parent_and_compute_validation(self):
+        self.assertEqual(check_attempt({"parent": "default"})["parent"], "default")
+        for bad in ({"parent": "../etc"}, {"compute": {"cells": -1}}, {"compute": {"hack": 1}}, {"compute": [1]}):
+            with self.subTest(bad=bad), self.assertRaises(RsiError):
+                check_attempt(bad)
 
 
 class OneShot(unittest.TestCase):

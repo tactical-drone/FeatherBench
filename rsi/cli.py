@@ -28,6 +28,7 @@ SCHEMAS = {"describe": "rsi/describe@1", "schema": "rsi/schema@1", "check": "rsi
            "runs stats": "rsi/stats@1", "replay": "rsi/replay@1", "doctor": "rsi/doctor@1", "gp check": "rsi/gp-check@1",
            "bench": "rsi/bench@1", "bench list": "rsi/bench-list@1", "bench rank": "rsi/bench-leaderboard@1",
            "bench leaderboard": "featherbench/leaderboard@1", "bench stamp": "featherbench/attempt@1",
+           "bench start": "featherbench/start@1",
            "bench score-answer": "featherbench/oneshot@1",
            "complexity": "rsi/complexity@1"}
 GLOBAL_VALUE = ("--format", "--log", "--parts", "--store")
@@ -227,7 +228,7 @@ def build_parser():
 
     p = sub.add_parser("bench", help="FeatherBench (fewest params wins): bench [list | rank FILE... | --benchmark ID]; "
                                      "alias: featherbench")
-    p.add_argument("action", nargs="?", help="list | rank | verify | leaderboard | stamp | score-answer "
+    p.add_argument("action", nargs="?", help="list | rank | verify | leaderboard | start | stamp | score-answer "
                                              "(omit to run a benchmark)")
     p.add_argument("files", nargs="*")
     add_config_flags(p)
@@ -247,6 +248,10 @@ def build_parser():
     p.add_argument("--cost-usd", type=float, help="stamp: what the attempt cost, US dollars")
     p.add_argument("--human-assist", choices=["none", "some", "lots"], help="stamp: how much a human helped")
     p.add_argument("--answer-png", metavar="FILE", help="score-answer: also draw the 12 decision maps into FILE")
+    p.add_argument("--inherit", dest="from_racer", default="leader",
+                   help="start: inherit the setup of 'leader' (default), a racer's GitHub name, or 'default'")
+    p.add_argument("--setup-out", metavar="FILE", default="my_setup.json", help="start: where to write the starting setup")
+    p.add_argument("--parent", help="stamp: the setup this attempt started from (start fills it in)")
 
     p = sub.add_parser("complexity", help="empirical complexity exponent over a dataset family")
     add_config_flags(p)
@@ -583,13 +588,16 @@ def dispatch(a, g, argv, stdin, out):
             from . import featherbench as fb
             return "bench", SCHEMAS["bench score-answer"], fb.score_answer(
                 a.files[0], benchmark=a.benchmark, workers=a.workers, png=a.answer_png, on_event=log)
+        if a.action == "start":
+            from . import featherbench as fb
+            return "bench", SCHEMAS["bench start"], fb.start(a.from_racer, a.setup_out)
         if a.action == "stamp":
             if len(a.files) != 1:
                 raise RsiError("featherbench stamp needs exactly one settings file", "E_USAGE")
             from . import featherbench as fb
             return "bench", SCHEMAS["bench stamp"], {"file": a.files[0], "attempt": fb.stamp(
                 a.files[0], model=a.ai_model, harness=a.harness, tokens=a.tokens, cost_usd=a.cost_usd,
-                human_assist=a.human_assist)}
+                human_assist=a.human_assist, parent=a.parent)}
         if a.action == "leaderboard":
             from . import featherbench as fb
             return "bench leaderboard", SCHEMAS["bench leaderboard"], fb.leaderboard(

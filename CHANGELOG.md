@@ -7,6 +7,15 @@ plus a code fingerprint, so you can tell which version produced a number.
 
 ## Unreleased
 
+- An RSI loop after the RSIGym paper (docs/rsigym.md). `rsi featherbench start` inherits the
+  current leader's setup (or `--inherit default` / a racer) and lists its weakest patterns;
+  `stamp` records the parent and a compute ledger (trials, cells, CPU seconds since `start`)
+  measured by the console itself. Results gain an `rsi_index` (mean share of the remaining
+  accuracy gap closed over the default setup, per pattern) and the leaderboard a
+  `gain_over_parent` per entry (recursive progress) and `best_rsi_index` per model. The
+  agent loop in AGENTS.md now follows the paper's lessons: diagnose first, light changes,
+  inherit what works.
+
 ## 0.3.0 (2026-10-07)
 
 - The RSI release. RSI = Recursive Super Intelligence: intelligence that improves the next

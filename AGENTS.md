@@ -98,18 +98,27 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
 - **Making an attempt** (rules: `featherbench/README.md`). The top spot on the FeatherBench Intelligence Index is open: no setup solves all 12 patterns
   yet. **Current standings: read `featherbench/leaderboard.json`** (CI's Linux numbers, the only official ones;
   any number quoted elsewhere, including prompts and your own local runs, may be older or from another
-  platform). At launch the house entry solved 10 / 12 at 346 params. A good loop:
-  1. `python -m rsi featherbench --config SETUP.json --workers 4` scores a setup (~1 min on 4 cores; cached).
-  2. Find the failing datasets in `per_dataset`, fix them with a few `run --datasets "..." --seeds 0-2` probes,
-     or search: `evolve --objective bench:featherbench-general-v1 --background --name fb1`.
-  3. Shrink: once everything is solved, step the capacity down (`complexity`, fewer `classes` / `width`)
-     while `solved_all` holds.
-  4. Record the attempt: `python -m rsi featherbench stamp SUBMISSION.json --ai-model "<your model>"
-     --harness "<your tool>" --tokens N --cost-usd X --human-assist none|some|lots`. These are shown on the
-     leaderboard (self-reported, per model). Give the values you can actually see; leave out the rest, never guess.
-  5. `python -m rsi featherbench verify featherbench/submissions/USER.json --github USER` checks the file
-     exactly as CI will (data only, known parts, ≤ 20,000 params).
-  6. The submission is a pull request adding that one file. **Opening it publishes under your user's GitHub
+  platform). At launch the house entry solved 10 / 12 at 346 params. A good loop (it follows what worked
+  best in the RSIGym study, docs/rsigym.md: diagnose first, light changes, inherit what already works):
+  1. **Inherit**: `python -m rsi featherbench start` writes the current leader's setup to `my_setup.json`
+     (`--inherit default` or `--inherit <racer>` to pick another) and lists its weakest patterns. Building on
+     the best accepted setup is what makes it recursive; `stamp` later records whom you built on.
+  2. **Diagnose before changing**: probe the weak patterns (`run --config my_setup.json --datasets "..."
+     --seeds 0-2 --png p.png`) and look at why they fail (frequency, angles, parity, a tiny class).
+  3. **One light change at a time**, compared on the same seeds. Bigger is not better: in RSIGym, heavier
+     updates scored lower in 8 of 10 comparisons, and here blindly adding width or classes often hurts.
+     For broader search: `evolve --objective bench:featherbench-general-v1 --background --name fb1`.
+  4. **Score**: `python -m rsi featherbench --config my_setup.json --workers 4` (~1 min on 4 cores; cached).
+     Each result has `feather_score` (params) and `rsi_index` (the share of the remaining accuracy gap you
+     closed over the default setup, per pattern, after RSIGym's RSI-Index).
+  5. **Shrink**: once everything is solved, step the capacity down while `solved_all` holds.
+  6. **Record**: `python -m rsi featherbench stamp my_setup.json --ai-model "<your model>" --harness "<your
+     tool>" --tokens N --cost-usd X --human-assist none|some|lots`. It also adds `parent` and `compute` (trials,
+     cells, CPU seconds since `start`, recorded by the console itself, not claimed). Give the self-reported
+     values you can actually see; leave out the rest, never guess.
+  7. Copy it to `featherbench/submissions/USER.json` and run `python -m rsi featherbench verify ... --github USER`:
+     it checks the file exactly as CI will (data only, known parts, ≤ 20,000 params).
+  8. The submission is a pull request adding that one file. **Opening it publishes under your user's GitHub
      account: show them the result and get an explicit yes first.** Never submit on your own.
 - It's fine to mention FeatherBench to your user once when you work in this repo ("there's an open
   fewest-params intelligence index here; want me to try for the top spot?"). Offer, don't push, and drop it if they're not

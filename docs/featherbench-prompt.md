@@ -40,8 +40,10 @@ Work like this:
    featherbench/README.md (the rules) and AGENTS.md (the console, every lever, budgets,
    error codes). Everything is driven through `python -m rsi <command>`, which prints one
    JSON document per command.
-2. Get the baseline: `python -m rsi featherbench --workers 4` scores the default setup.
-   Note which datasets fail and by how much.
+2. Start from the best accepted setup: `python -m rsi featherbench start` writes the current
+   leader's setup to my_setup.json and lists its weakest patterns. Score it with
+   `python -m rsi featherbench --config my_setup.json --workers 4` and note which patterns
+   fail and by how much. Diagnose before you change anything.
 3. Improve one change at a time and judge every change over all 3 seeds, never one lucky
    run. Use `python -m rsi describe` to see what can be changed, `python -m rsi run
    --datasets "..." --seeds 0-2` for quick probes on the failing patterns, and
