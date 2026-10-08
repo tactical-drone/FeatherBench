@@ -29,6 +29,6 @@ follows:
   pattern worse), so the loop says: one light change at a time, compared on the same seeds.
 - Doubling the budget gave mixed results; spend did not explain the ranking.
 
-One gap RSIGym states openly also applies here: development and final scores use tasks the
-agent has seen. FeatherBench's seeds are public, so a setup could be tuned to seeds 0-2; a
-held-out seed set scored only by CI is a natural next step.
+One gap RSIGym states openly (development and final scores use tasks the agent has seen)
+FeatherBench now closes: CI also scores every merged submission on secret held-out seeds,
+publishes only the aggregates, and flags setups that do clearly worse there (`overfit`).

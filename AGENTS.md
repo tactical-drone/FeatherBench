@@ -111,7 +111,8 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
   4. **Score**: `python -m rsi featherbench --config my_setup.json --workers 4` (~1 min on 4 cores; cached).
      Each result has `feather_score` (params) and `rsi_index` (the share of the remaining accuracy gap you
      closed over the default setup, per pattern, after RSIGym's RSI-Index).
-  5. **Shrink**: once everything is solved, step the capacity down while `solved_all` holds.
+  5. **Shrink**: once everything is solved, step the capacity down while `solved_all` holds. Don't tune to
+     seeds 0-2: CI also scores secret held-out seeds and flags `overfit` setups on the leaderboard.
   6. **Record**: `python -m rsi featherbench stamp my_setup.json --ai-model "<your model>" --harness "<your
      tool>" --tokens N --cost-usd X --human-assist none|some|lots`. It also adds `parent` and `compute` (trials,
      cells, CPU seconds since `start`, counted by the console itself; it travels in your file, so it is self-reported like the rest). Give the self-reported

@@ -76,6 +76,13 @@ benchmarks that re-run fixed tests over time.
 
 ## How scoring stays honest
 
+- **Held-out seeds.** Besides the public seeds 0-2, CI scores every merged submission on a
+  set of secret seeds (a GitHub Actions secret only the leaderboard's scoring job can read).
+  The leaderboard shows the held-out result next to the public one (`holdout`: patterns
+  solved, mean and worst accuracy; never the seeds) and flags `overfit` when a setup does
+  clearly worse there: 2+ fewer patterns solved, or 3+ points lower mean accuracy. Tuning to
+  seeds 0-2 doesn't pay.
+
 - The pull request check runs on `pull_request` with a read-only token and no secrets. It
   verifies the file and re-runs the benchmark so you can see your score, but it can't
   write anything.

@@ -17,6 +17,7 @@ nothing a pull request computes is ever trusted.
 Part of nn-playground. AGPL-3.0; for other licensing see COMMERCIAL.md.
 """
 import json
+import os
 import re
 from pathlib import Path
 
@@ -183,6 +184,44 @@ def stamp(path, **fields):
     return meta["attempt"]
 
 
+HOLDOUT_ENV = "FEATHERBENCH_HOLDOUT_SEEDS"  # a GitHub Actions secret, read only by the leaderboard's score job
+
+
+def holdout_seeds():
+    """The secret held-out seeds (comma-separated ints in $FEATHERBENCH_HOLDOUT_SEEDS), or None."""
+    raw = os.environ.get(HOLDOUT_ENV, "").strip()
+    if not raw:
+        return None
+    try:
+        seeds = tuple(int(x) for x in raw.replace(";", ",").split(",") if x.strip())
+    except ValueError:
+        raise RsiError(f"{HOLDOUT_ENV} must be comma-separated integers", "E_USAGE") from None
+    if len(seeds) < 3 or len(set(seeds)) != len(seeds) or any(not 0 <= x < 2 ** 32 for x in seeds):
+        raise RsiError(f"{HOLDOUT_ENV} needs at least 3 distinct seeds in 0..2^32-1", "E_USAGE")
+    return seeds
+
+
+def holdout_score(cfg, b, seeds, store=None, workers=None):
+    """Score cfg on secret seeds. Silent (no progress events, which name seeds) and returns
+    aggregates only: no seed numbers, cells, hash or definition ever leave this function."""
+    import dataclasses
+    from . import api
+    hb = dataclasses.replace(b, seeds=tuple(seeds))
+    doc = api.bench(cfg, hb, workers, None, cache=False, store=store, on_event=None)
+    return {"n_seeds": len(seeds), "n_solved": doc["n_solved"], "n_datasets": doc["n_datasets"],
+            "solved_all": doc["solved_all"], "mean_acc": doc["mean_acc"], "min_acc": doc["min_acc"],
+            "per_dataset": [{"dataset": r["dataset"], "fresh_acc_mean": r.get("fresh_acc_mean"), "solved": r.get("solved")}
+                            for r in doc["per_dataset"]]}
+
+
+def overfit_flag(public, held):
+    """True when the setup does clearly worse on the held-out seeds than on the public ones:
+    2+ fewer patterns solved, or mean accuracy 3+ points lower."""
+    if not held:
+        return None
+    return (public["n_solved"] - held["n_solved"] >= 2) or (public["mean_acc"] - held["mean_acc"] >= 0.03)
+
+
 BASELINE = {}  # the shipped default setup: the "initial system" every attempt is measured against
 
 
@@ -297,6 +336,9 @@ def verify(path, *, github=None, benchmark=None, workers=None, out=None, store=N
     doc["rsi_index"] = rsi_index(doc["per_dataset"], base)
     doc["baseline"] = {"config_key": base_key, "per_dataset": [
         {"dataset": r["dataset"], "fresh_acc_mean": r.get("fresh_acc_mean")} for r in base]}
+    seeds = holdout_seeds()  # only set in CI's leaderboard job: secret seeds a submitter can't tune to
+    doc["holdout"] = holdout_score(cfg, b, seeds, store, workers) if seeds else None
+    doc["overfit"] = overfit_flag(doc, doc["holdout"])
     doc["submission_file"] = Path(path).as_posix()
     if out:
         configio.atomic_write_text(out, json.dumps(configio.json_safe(doc), ensure_ascii=False, indent=1) + "\n")
@@ -330,6 +372,8 @@ def leaderboard(results=RESULTS, out=LEADERBOARD, *, benchmark=None, top=None):
                         "submitted": d.get("submitted"), "config_diff": d.get("config_diff"),
                         "config": d.get("config"), "platform": e["platform"], "torch": e["torch"],
                         "code_fp": e["code_fp"], "feather_score": feather_score(e), "rsi_index": d.get("rsi_index"),
+                        "holdout": {k: (d.get("holdout") or {}).get(k) for k in ("n_solved", "solved_all", "mean_acc", "min_acc")}
+                        if d.get("holdout") else None, "overfit": d.get("overfit"),
                         "attempt": d.get("attempt") or {k: None for k in ATTEMPT_FIELDS}})
     by_user = {e["github"].lower(): e for e in entries}
     for e in entries:  # recursive progress: what an attempt added over the setup it inherited

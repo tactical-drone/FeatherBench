@@ -187,6 +187,48 @@ class RsiLoop(unittest.TestCase):
                 check_attempt(bad)
 
 
+class HeldOut(unittest.TestCase):
+    """Secret seeds only CI knows: scored, published as aggregates, never revealed."""
+
+    def test_holdout_scored_without_revealing_seeds(self):
+        import os
+        from rsi.featherbench import HOLDOUT_ENV, holdout_seeds, overfit_flag
+        secret = ("861733", "4242421", "9090907")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            res = tmp / "results"
+            res.mkdir()
+            (tmp / "neo.json").write_text(json.dumps({"model": "mlp", "layers": "8"}), "utf-8")
+            os.environ[HOLDOUT_ENV] = ",".join(secret)
+            try:
+                with quiet():
+                    doc = verify(tmp / "neo.json", github="neo", benchmark=QUICK, workers=0, out=res / "neo.json",
+                                 store=str(tmp / "store"))
+            finally:
+                os.environ.pop(HOLDOUT_ENV, None)
+            ho = doc["holdout"]
+            self.assertEqual((ho["n_seeds"], ho["n_datasets"]), (3, doc["n_datasets"]))
+            self.assertIsInstance(doc["overfit"], bool)
+            board = leaderboard(res, tmp / "lb.json", benchmark=QUICK)
+            published = (res / "neo.json").read_text(encoding="utf-8") + (tmp / "lb.json").read_text(encoding="utf-8")
+            for seed in secret:
+                self.assertNotIn(seed, published)  # the secret seeds never reach any published file
+            self.assertEqual(board["entries"][0]["holdout"]["n_solved"], ho["n_solved"])
+        self.assertIsNone(holdout_seeds())  # unset: no held-out run (local and pull-request CI)
+        for bad in ("1,2", "1,1,2", "a,b,c", "-1,2,3"):
+            os.environ[HOLDOUT_ENV] = bad
+            try:
+                with self.subTest(bad=bad), self.assertRaises(RsiError):
+                    holdout_seeds()
+            finally:
+                os.environ.pop(HOLDOUT_ENV, None)
+        pub = {"n_solved": 12, "mean_acc": 0.95}
+        self.assertIsNone(overfit_flag(pub, None))
+        self.assertFalse(overfit_flag(pub, {"n_solved": 12, "mean_acc": 0.94}))
+        self.assertTrue(overfit_flag(pub, {"n_solved": 10, "mean_acc": 0.94}))
+        self.assertTrue(overfit_flag(pub, {"n_solved": 12, "mean_acc": 0.91}))
+
+
 class OneShot(unittest.TestCase):
     def test_extract_answer(self):
         fence = "`" * 3
@@ -233,6 +275,13 @@ class Workflows(unittest.TestCase):
         for line in code.splitlines():  # event data only through env:, never inlined into a script
             if "${{ github.event" in line and not line.strip().startswith("group:"):
                 self.assertRegex(line.strip(), r"^[A-Z_]+: \$\{\{ github\.event\.[a-z_.]+ \}\}$")
+
+    def test_holdout_secret_only_in_the_trusted_score_job(self):
+        self.assertNotIn("HOLDOUT", self.read("featherbench-pr.yml"))
+        wf = self.read("featherbench-leaderboard.yml")
+        score, publish = wf.split("  publish:")
+        self.assertIn("secrets.FEATHERBENCH_HOLDOUT_SEEDS", score)
+        self.assertNotIn("secrets.", publish)
 
     def test_leaderboard_workflow_runs_on_main_only(self):
         code = "\n".join(l for l in self.read("featherbench-leaderboard.yml").splitlines()
