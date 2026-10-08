@@ -58,11 +58,14 @@ Every entry also gets a `feather_score` from 0 to 1000 that orders exactly like 
 ranking (below 923: not every pattern solved; 923-1000: all 12 solved, fewer params higher),
 and an `rsi_index`: the mean share of the remaining accuracy gap it closes over the default
 setup, per pattern (after RSIGym's RSI-Index; 0 = no better, 1 = perfect, negative = worse).
+The baseline numbers are frozen per benchmark version in `featherbench/baselines/`, so the
+index stays comparable when the playground's default changes.
 
 `python -m rsi featherbench start` begins an attempt from an inherited setup (the current
 leader by default). `stamp` then records `parent` (whom you built on; the leaderboard shows
 `gain_over_parent`, the recursive progress) and `compute` (trials, cells and CPU seconds the
-rsi console itself recorded since `start`, not claimed by the agent).
+rsi console counted since `start`; it travels in the submission file, so it is self-reported
+too, just harder to get wrong by accident).
 
 ## One-shot mode (no tools, no repo)
 

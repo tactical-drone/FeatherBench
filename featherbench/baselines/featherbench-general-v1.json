@@ -1,0 +1,60 @@
+{
+ "format": "featherbench/baseline",
+ "version": 1,
+ "benchmark": "featherbench-general-v1",
+ "hash": "6e9b8a2dc8a4",
+ "note": "The initial system the RSI-Index measures against, frozen once per benchmark version: the playground default setup as CI scored it on Linux (featherbench/results/tactical-drone.json). Never edit; a new default means a new benchmark version.",
+ "config_key": "6120f2f7027e3665",
+ "source": "featherbench/results/tactical-drone.json",
+ "submitted": "2026-10-05T12:41:15Z",
+ "per_dataset": [
+  {
+   "dataset": "Bullseye (5 rings)",
+   "fresh_acc_mean": 0.9033333460489908
+  },
+  {
+   "dataset": "Sectors (8 wedges)",
+   "fresh_acc_mean": 0.9415000081062317
+  },
+  {
+   "dataset": "Egg crate (3)",
+   "fresh_acc_mean": 0.9458333253860474
+  },
+  {
+   "dataset": "Checkerboard",
+   "fresh_acc_mean": 0.8775000174840292
+  },
+  {
+   "dataset": "Hex tiling (3, coarse)",
+   "fresh_acc_mean": 0.94050000111262
+  },
+  {
+   "dataset": "Random lines (parity)",
+   "fresh_acc_mean": 0.9291666746139526
+  },
+  {
+   "dataset": "Voronoi (6)",
+   "fresh_acc_mean": 0.9445000092188517
+  },
+  {
+   "dataset": "Spiral (3 arms)",
+   "fresh_acc_mean": 0.9277610977490743
+  },
+  {
+   "dataset": "Blobs + tiny cluster",
+   "fresh_acc_mean": 0.7310000061988831
+  },
+  {
+   "dataset": "Mandelbrot",
+   "fresh_acc_mean": 0.9423333406448364
+  },
+  {
+   "dataset": "Yin-yang",
+   "fresh_acc_mean": 0.9553333322207133
+  },
+  {
+   "dataset": "Smiley",
+   "fresh_acc_mean": 0.9089999993642172
+  }
+ ]
+}
