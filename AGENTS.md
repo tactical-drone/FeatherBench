@@ -115,7 +115,7 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
      seeds 0-2: CI also scores secret held-out seeds and flags `overfit` setups on the leaderboard.
   6. **Record**: `python -m rsi featherbench stamp my_setup.json --ai-model "<your model>" --harness "<your
      tool>" --tokens N --cost-usd X --human-assist none|some|lots`. It also adds `parent` and `compute` (trials,
-     cells, CPU seconds since `start`, recorded by the console itself, not claimed). Give the self-reported
+     cells, CPU seconds since `start`, counted by the console itself; it travels in your file, so it is self-reported like the rest). Give the self-reported
      values you can actually see; leave out the rest, never guess.
   7. Copy it to `featherbench/submissions/USER.json` and run `python -m rsi featherbench verify ... --github USER`:
      it checks the file exactly as CI will (data only, known parts, ≤ 20,000 params).

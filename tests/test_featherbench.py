@@ -134,6 +134,21 @@ class RsiLoop(unittest.TestCase):
         self.assertEqual(rsi_index([{"dataset": "a", "fresh_acc_mean": 0.6}], base), -1.0)  # a regression
         self.assertIsNone(rsi_index([], base))
 
+    def test_baseline_is_frozen(self):
+        from rsi.bench import get_benchmark
+        from rsi.featherbench import baseline_rows
+        b = get_benchmark("featherbench-general-v1")
+        rows, key = baseline_rows(b)  # no training: read from featherbench/baselines/
+        self.assertEqual(len(rows), 12)
+        self.assertEqual(key, json.loads(Path("featherbench/results/tactical-drone.json").read_text(encoding="utf-8"))["config_key"])
+        with tempfile.TemporaryDirectory() as tmp:  # a stale file (other hash) is never used
+            f = Path(tmp) / f"{b.id}.json"
+            f.write_text(json.dumps({"hash": "000000000000", "config_key": "x", "per_dataset": []}), encoding="utf-8")
+            from unittest import mock
+            with mock.patch("rsi.api.bench", return_value={"per_dataset": ["fresh"]}) as run:
+                self.assertEqual(baseline_rows(b, baselines=tmp)[0], ["fresh"])
+                run.assert_called_once()
+
     def test_start_inherits_and_stamp_records(self):
         import os
         with tempfile.TemporaryDirectory() as tmp:

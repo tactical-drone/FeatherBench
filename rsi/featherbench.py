@@ -49,7 +49,7 @@ ATTEMPT_FIELDS = {
     "cost_usd": "what the attempt cost in US dollars (model usage; compute you paid for)",
     "human_assist": "'none' (the AI did it alone), 'some' or 'lots'",
     "parent": "the setup this attempt started from: a leaderboard racer's GitHub name, or 'default'",
-    "compute": "recorded by the rsi console (rsi featherbench start/stamp): trials, cells, cell_seconds",
+    "compute": "filled in by the rsi console (rsi featherbench start/stamp): trials, cells, cell_seconds; self-reported like the rest",
 }
 HUMAN_ASSIST = ("none", "some", "lots")
 
@@ -109,7 +109,8 @@ def _attempt_marker():
 def ledger(since, store=None):
     """What the rsi console itself recorded since `since` (ISO time): trials, cells actually
     trained (cache hits excluded) and their CPU seconds. The RSIGym idea of recorded execution:
-    the platform's own record, not the agent's claim."""
+    the console's own count. It travels in the submission file, which the submitter can edit,
+    so on the leaderboard it is self-reported like tokens and cost."""
     from . import api
     st = api.open_store(store)
     trials = cells = 0
@@ -238,8 +239,19 @@ def rsi_index(per_dataset, baseline):
     return round(sum(terms) / len(terms), 4) if terms else None
 
 
-def baseline_rows(b, store=None, workers=None):
-    """Per-pattern results of the baseline (the default setup) on benchmark b; cached."""
+BASELINES = Path("featherbench") / "baselines"
+
+
+def baseline_rows(b, store=None, workers=None, baselines=BASELINES):
+    """Per-pattern results of the baseline on benchmark b. Official benchmarks use the numbers frozen
+    in featherbench/baselines/<id>.json (CI's Linux run of the default setup), so the RSI-Index stays
+    comparable when the default changes and CI doesn't re-score the default on every check. Other
+    benchmarks fall back to scoring the current default (cached)."""
+    f = Path(baselines) / f"{b.id}.json"
+    if f.is_file():
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        if doc.get("hash") == b.hash:
+            return doc["per_dataset"], doc["config_key"]
     from . import api
     cfg = configio.config_from_dict(BASELINE)[0]
     doc = api.bench(cfg, b.id, workers, None, cache=True, store=store)

@@ -11,7 +11,7 @@ CPU only), but the same research loop, so several of its ideas carry over direct
 | RSIGym | FeatherBench |
 |---|---|
 | **RSI = accepted changes carried into later cycles**; recursive progress = inherited changes improve how later improvements are made | `rsi featherbench start` begins from the current leader's setup; `stamp` records the `parent`, and the leaderboard shows each entry's `gain_over_parent` |
-| **RSI-Index**: mean share of the remaining gap closed, (s − s₀) / (1 − s₀), per benchmark | `rsi_index`: the same formula per pattern (fresh accuracy vs the default setup), averaged over the 12 patterns; next to `feather_score`, which ranks by params |
+| **RSI-Index**: mean share of the remaining gap closed, (s − s₀) / (1 − s₀), per benchmark | `rsi_index`: the same formula per pattern (fresh accuracy vs the default setup, frozen per benchmark version in `featherbench/baselines/`), averaged over the 12 patterns; next to `feather_score`, which ranks by params |
 | **Recorded execution**: the services keep their own ledger, independent of what the agent reports | `compute` in the attempt: trials, cells and CPU seconds the rsi console recorded since `start`, alongside the self-reported model, tokens and cost |
 | **Budget as part of the problem**, visible to the agent | Steps-based budgets everywhere, a time-box in the agentic prompt (45 min / 40 runs), cached cells so repeats are free |
 | **Inspectable evidence**: per-task rewards and trajectories, not one number | `per_dataset` accuracies, `start`'s weakest patterns, decision-map PNGs (`--png`, `--answer-png`) |
