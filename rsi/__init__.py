@@ -52,7 +52,7 @@ import importlib
 import sys
 import types
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 _API = ("describe", "check", "run", "sweep", "evolve", "bench", "bench_rank", "bench_list", "complexity", "gp_check",
         "status", "wait", "stop", "leaderboard", "export", "open_ui", "runs_list", "runs_query", "runs_show",

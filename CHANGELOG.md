@@ -7,6 +7,13 @@ plus a code fingerprint, so you can tell which version produced a number.
 
 ## Unreleased
 
+## 0.4.1 (2026-10-08)
+
+- The RSI-Index baseline is frozen per benchmark version (`featherbench/baselines/`, CI's
+  Linux numbers for the default setup), so the index stays comparable when the default
+  changes and `verify` no longer re-scores the default on every check. The compute ledger is
+  labelled self-reported: it travels in the editable submission file.
+
 ## 0.4.0 (2026-10-08)
 
 - Held-out seeds: CI's leaderboard job also scores every merged submission on secret seeds
@@ -21,11 +28,6 @@ plus a code fingerprint, so you can tell which version produced a number.
   `gain_over_parent` per entry (recursive progress) and `best_rsi_index` per model. The
   agent loop in AGENTS.md now follows the paper's lessons: diagnose first, light changes,
   inherit what works.
-- The RSI-Index baseline is frozen per benchmark version (`featherbench/baselines/`, CI's
-  Linux numbers for the default setup), so the index stays comparable when the default
-  changes and `verify` no longer re-scores the default on every check. The compute ledger is
-  labelled self-reported: it travels in the editable submission file.
-
 ## 0.3.0 (2026-10-07)
 
 - The RSI release. RSI = Recursive Super Intelligence: intelligence that improves the next
