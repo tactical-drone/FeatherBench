@@ -45,7 +45,9 @@ python -m rsi bench --benchmark featherbench-quick-v1 --model mlp --layers 8,8  
 - **Task** (never searched): `dataset n_points noise splitter test_frac seed`. `seed` drives data, split, init
   AND batch order; use `--seeds 0-4` for replicates, never a different `seed` per arm.
 - **Model**: `model` = `custom nn` (reads `width classes expand fourier_freq activation act_decide act_relate
-  act_prepare skip skip_decide skip_relate skip_prepare`) or `mlp` (reads `layers activation layer skip`). Setting a field the model does not read
+  act_prepare skip skip_decide skip_relate skip_prepare`), `mlp` (reads `layers activation layer skip`) or
+  `looped` (reads `width expand fourier_freq activation` and `extra.loops`: one shared block applied `loops`
+  times, so depth costs no parameters; pair it with `train_step="cross-loop distill"`, see docs/research.md). Setting a field the model does not read
   gives `W_INERT_FIELD`. `features` (order matters), `init`, `extra` are read by every model. Pass features
   comma-separated in the order you want: `--features "x,y,sin x"` (or `x^2` for `x²`).
 - `act_*` accept `same` (= `activation`); `skip_*` accept `same` (= `skip` where the widths allow, else none).
@@ -126,7 +128,9 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
   interested.
 - `python -m rsi complexity --family spiral --sizes 2-6 --model mlp --layers 8,8` steps the capacity knob up
   a ladder per size until mean fresh accuracy ≥ `--threshold`, then fits `params ~ c * k^p`: an empirical
-  complexity exponent `p`. Families: spiral, checkerboard, rings, stripes, blobs (`spiral[7]` is a dataset name).
+  complexity exponent `p`. Families: spiral, checkerboard, rings, stripes, blobs, parity (`spiral[7]` is a dataset
+  name). `parity[k]` is linear equations mod 2, whose exact algorithmic complexity is known: the one family where
+  the empirical exponent can be read against a real big-O.
 
 ## 9. Fitness and overfitting
 Test sets are tiny (120 points by default): a 1-point change is 0.8 %. Prefer `--fresh-points 2000`

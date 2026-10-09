@@ -101,3 +101,50 @@ class MLP(nn.Module):
 @MODELS.register("mlp")
 def build_mlp(n_in, n_out, cfg):
     return MLP(n_in, parse_layers(cfg.layers, cfg.activation), n_out, cfg.layer, cfg.skip)
+
+
+# appended (opt-in): weight-tied recurrent depth, after looped language models
+class Looped(nn.Module):
+    """One shared block applied `loops` times, re-injecting the input each loop (recurrent
+    depth, as in looped LMs). More loops = more computation for zero extra parameters, which
+    is what FeatherBench rewards. A shared head reads every loop, so loop_logits(x) gives one
+    prediction per depth (used by the 'cross-loop distill' train step).
+    Reads width, expand, fourier_freq, activation and extra.loops (default 4)."""
+
+    def __init__(self, n_in, n_out, cfg):
+        super().__init__()
+        from .layers import make_expansion
+        self.loops = max(1, int((cfg.extra or {}).get("loops", 4)))
+        self.width = int(cfg.width)
+        self.flank = make_expansion(cfg.expand, n_in, scale=cfg.fourier_freq)
+        n_x = self.flank(torch.zeros(1, n_in)).shape[-1]
+        self.inp = nn.Linear(n_x, self.width)        # input injection, reused every loop
+        self.block = nn.Linear(self.width, self.width)  # the shared recurrent block
+        self.head = nn.Linear(self.width, n_out)      # shared readout for every loop
+        self.act = ACTIVATIONS.get(cfg.activation)()
+        self.hidden_sizes = [self.width] * self.loops
+
+    def describe(self):
+        return f"looped {self.width}x{self.loops}"
+
+    def _states(self, x):
+        e = self.inp(self.flank(x))
+        h = self.act(e)
+        states = [h]
+        for _ in range(self.loops - 1):
+            h = self.act(self.block(h) + e)
+            states.append(h)
+        return states
+
+    def loop_logits(self, x):
+        """Logits after every loop, shallowest first; the last one is the model's output."""
+        return [self.head(h) for h in self._states(x)]
+
+    def forward(self, x, collect=False):
+        states = self._states(x)
+        out = self.head(states[-1])
+        return (out, states) if collect else out
+
+
+MODELS.register("looped", lambda n_in, n_out, cfg: Looped(n_in, n_out, cfg),
+                doc="weight-tied recurrent depth: one shared block, extra.loops times (params don't grow)")

@@ -57,6 +57,11 @@ Your setup is a JSON object. Any field you leave out keeps its default. Two mode
 "mlp": a plain stack. Fields: layers ("16,16" or per layer "16:sin,8:tanh"; "" = linear),
   activation (for layers without one), layer, skip (between layers).
 
+"looped": one shared block applied several times (recurrent depth; more loops cost no
+  parameters). x -> expand(x) -> inp (width) -> [block (width, + activation), input re-added]
+  x loops -> output. Fields: width, expand, fourier_freq, activation, and "extra":
+  {"loops": n} (default 4).
+
 Shared fields: features (input columns, in order), init, optimizer, lr, weight_decay,
 schedule, sampler, batch_size (int or null for full batch), loss, train_step.
 
@@ -77,7 +82,8 @@ Allowed values:
   "cosine warm restarts (T0=1000)", "warmup 200 + constant"
 - sampler: "random (with replacement)", "epoch shuffle"
 - loss: "cross entropy", "cross entropy (smoothed 0.1)", "mse on softmax", "focal (γ=2)"
-- train_step: "standard", "clip grad norm 1.0", "skip non-finite"
+- train_step: "standard", "clip grad norm 1.0", "skip non-finite", "cross-loop distill"
+  (looped only: an earlier loop also learns from the last loop; "extra": {"distill_weight": w})
 - ranges: width 1-512, classes 1-512, lr 1e-6 to 100, weight_decay 0-1, batch_size 1-100000
 
 The default setup:

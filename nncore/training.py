@@ -64,3 +64,31 @@ def clipped_extra(model, opt, loss_fn, xb, yb, cfg=None):
     torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
     opt.step()
     return loss.item()
+
+
+@TRAIN_STEPS.register("cross-loop distill")
+def cross_loop_distill(model, opt, loss_fn, xb, yb, cfg=None):
+    """D-LoopOPD (arXiv 2610.10623) for looped models: the task loss on the last loop, plus
+    a reverse KL that pulls an intermediate loop (extra.distill_loop, default the middle one)
+    toward the current last loop, stop-gradient. The teacher is the model's own deeper
+    computation, refreshed every step, so student updates also improve the teacher through
+    the shared weights. extra.distill_weight (default 1.0). Models without loop_logits get a
+    standard step."""
+    loop_logits = getattr(model, "loop_logits", None)
+    if loop_logits is None:
+        return standard(model, opt, loss_fn, xb, yb)
+    extra = (cfg.extra if cfg is not None else None) or {}
+    logits = loop_logits(xb)
+    teacher_logits = logits[-1]
+    loss = loss_fn(teacher_logits, yb)
+    if len(logits) > 1:
+        k = int(extra.get("distill_loop", max(1, len(logits) // 2)))
+        student = logits[min(max(k, 1), len(logits) - 1) - 1]
+        log_p = torch.log_softmax(student, -1)
+        log_q = torch.log_softmax(teacher_logits.detach(), -1)  # sg[teacher]: the dynamic, self-refreshing teacher
+        kl = (log_p.exp() * (log_p - log_q)).sum(-1).mean()     # reverse KL(student || teacher), as in OPD
+        loss = loss + float(extra.get("distill_weight", 1.0)) * kl
+    opt.zero_grad(set_to_none=True)
+    loss.backward()
+    opt.step()
+    return loss.item()

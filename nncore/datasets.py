@@ -751,6 +751,27 @@ FAMILIES.register("blobs", Family(
     n_classes=lambda k: k,
     description="k Gaussian blobs on a circle, one class each; spread scales with the spacing"))
 
+
+
+def _parity_k(k):
+    """k random lines (directions spread over 180 degrees, off-centre); class = parity of the
+    number of lines a point lies above: a system of linear equations mod 2."""
+    def make(n, noise, rng, layout_rng=None):
+        lr = rng if layout_rng is None else layout_rng
+        th = lr.uniform(0, math.pi) + np.arange(k) * math.pi / k + lr.uniform(-0.15, 0.15, k)
+        d = lr.choice([-1.0, 1.0], k) * lr.uniform(0.05, 0.75, k)
+        normals = np.stack([np.cos(th), np.sin(th)], 1)
+        return _stratified(n, 2, lambda X: ((X @ normals.T) > d).sum(1) % 2, rng, jitter=noise * 0.45)
+    return make
+
+
+# appended: the one family whose exact algorithmic complexity is known (linear equations mod 2,
+# the Maltsev case; Lagerkvist 2026 solves Maltsev CSPs in O(n^2 m)), so the empirical exponent a
+# net needs can be read against a real big-O
+FAMILIES.register("parity", Family(
+    "parity", _parity_k, sizes=range(1, 9), size_label="lines", symbol="k", min_size=1, max_size=32,
+    description="k random lines, class = parity of how many a point lies above (linear equations mod 2)"))
+
 _FAMILY_NAME = re.compile(r"(.+)\[([1-9][0-9]*)\]\Z")
 
 
