@@ -60,7 +60,7 @@ Your setup is a JSON object. Any field you leave out keeps its default. Two mode
 "looped": one shared block applied several times (recurrent depth; more loops cost no
   parameters). x -> expand(x) -> inp (width) -> [block (width, + activation), input re-added]
   x loops -> output. Fields: width, expand, fourier_freq, activation, and "extra":
-  {"loops": n} (default 4).
+  {"loops": n} (default 4, at most 8).
 
 Shared fields: features (input columns, in order), init, optimizer, lr, weight_decay,
 schedule, sampler, batch_size (int or null for full batch), loss, train_step.

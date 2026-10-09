@@ -79,7 +79,8 @@ Work like this:
    commands for the pull request, and I'll decide whether to submit it under my name.
 
 Rules that matter: a submission is a JSON settings file only, never code; it may only use
-parts that already exist in the repo; at most 20,000 params on any dataset. Budget your
+parts that already exist in the repo; at most 20,000 params on any dataset
+and at most 8 loops for a looped model. Budget your
 compute: one full benchmark run takes about a minute on 4 CPU cores, and results are
 cached, so repeating a run is free.
 

@@ -28,20 +28,12 @@ What we built:
 - `train_step: "cross-loop distill"`: task loss on the last loop + `extra.distill_weight`
   (default 1) x KL(loop `extra.distill_loop`, default the middle one || last loop, detached).
 
-| Setup | Solved | params_max | Mean acc | Worst | feather_score |
-|---|---|---|---|---|---|
-| Default (custom nn, the house entry) | 9/12 | 346 | 91.2% | 77.6% | 762.4 |
-| looped, width 8, 4 loops | **12/12** | **310** | 94.9% | 91.6% | **984.0** |
-| looped w8 L4 + cross-loop distill | 12/12 | 310 | 94.8% | 91.4% | 984.0 |
-| looped w8 L4, tanh | 11/12 | 310 | 94.1% | 85.2% | 918.5 |
-| looped w8 L4, tanh + cross-loop distill | 12/12 | 310 | 94.7% | 91.0% | 984.0 |
-| looped w12 L6, tanh + cross-loop distill | 12/12 | 486 | 94.6% | 91.9% | 982.8 |
-| looped w12 L6, sin + cross-loop distill | 7/12 | 486 | 81.2% | 49.5% | 600.9 |
+How the looped model and the distill step do on FeatherBench is for challengers to find
+out: the house keeps its own numbers private so the first full solves are a real race.
+One honest note: the deeper loop as teacher helped some activations and not others.
 
-Weight sharing is the big win: the looped net solves every pattern with fewer parameters
-than the default. Self-distillation is neutral with softplus and helps with tanh (11 to 12
-solved, worst pattern 85 to 91%), consistent with the paper's claim that the deeper loop is
-a useful teacher, though not a universal gain at this scale.
+Rule: a `looped` submission may use at most 8 loops (`extra.loops`), since loops add
+computation without adding parameters.
 
 ## A Fast Algorithm for Maltsev Constraints (arXiv 2610.08207)
 
