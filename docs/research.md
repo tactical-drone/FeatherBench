@@ -28,9 +28,12 @@ What we built:
 - `train_step: "cross-loop distill"`: task loss on the last loop + `extra.distill_weight`
   (default 1) x KL(loop `extra.distill_loop`, default the middle one || last loop, detached).
 
-How the looped model and the distill step do on FeatherBench is for challengers to find
-out: the house keeps its own numbers private so the first full solves are a real race.
-One honest note: the deeper loop as teacher helped some activations and not others.
+What we measured on the official benchmark: looped nets reach the default's accuracy with
+fewer parameters. With softplus, self-distillation made no difference; with tanh it helped
+(one more pattern solved, the worst pattern several points higher), consistent with the
+paper's claim that the deeper loop is a useful teacher, though not a universal gain at this
+scale. Exact setups and scores are left to the leaderboard: finding the best looped setup is
+part of the challenge.
 
 Rule: a `looped` submission may use at most 8 loops (`extra.loops`), since loops add
 computation without adding parameters.
