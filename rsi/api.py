@@ -32,7 +32,7 @@ from .pool import Evaluator, cell_specs, default_workers
 from .store import Store, closes_stores
 from .sweep import coerce_override, expand_values, grid, one_at_a_time
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 _WARN_STACK = []
 COMMAND_HELP = {
     "describe": "levers, models, parts, suites, metrics, objectives, commands, errors, env (start here)",

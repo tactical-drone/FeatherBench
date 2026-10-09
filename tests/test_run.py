@@ -107,7 +107,7 @@ class Aggregates(unittest.TestCase):
         self.assertEqual(fp, code_fingerprint())
         self.assertNotEqual(code_fingerprint([]), code_fingerprint(["my_parts"]))
         env = environment()
-        self.assertEqual(env["nncore"], "0.4.1")
+        self.assertEqual(env["nncore"], "0.5.0")
         self.assertIn("torch", env)
 
 

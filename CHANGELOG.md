@@ -7,6 +7,8 @@ plus a code fingerprint, so you can tell which version produced a number.
 
 ## Unreleased
 
+## 0.5.0 (2026-10-09)
+
 - New model `looped` (after looped LMs, arXiv 2610.10623): one shared block applied
   `extra.loops` times with the input re-injected each loop, so depth costs no parameters,
   plus `loop_logits()` for every depth. New train step `cross-loop distill` (the paper's
