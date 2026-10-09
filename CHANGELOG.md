@@ -11,9 +11,7 @@ plus a code fingerprint, so you can tell which version produced a number.
   `extra.loops` times with the input re-injected each loop, so depth costs no parameters,
   plus `loop_logits()` for every depth. New train step `cross-loop distill` (the paper's
   D-LoopOPD): task loss on the last loop plus a reverse KL pulling an intermediate loop
-  toward the current last loop, stop-gradient. On the official benchmark (Windows, local),
-  `looped` at width 8 / 4 loops solves all 12 patterns at 310 params (the default solves
-  9 at 346); distillation rescued the tanh variant from 11 to 12. docs/research.md.
+  toward the current last loop, stop-gradient. docs/research.md.
 - New complexity family `parity` (k random lines, class = parity: linear equations mod 2),
   after the Maltsev-constraints paper (arXiv 2610.08207): the family with a known exact
   algorithmic complexity.
