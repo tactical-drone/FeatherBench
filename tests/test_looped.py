@@ -75,3 +75,24 @@ class ParityFamily(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LoopCap(unittest.TestCase):
+    """FeatherBench rule: a looped submission may use at most MAX_LOOPS loops."""
+
+    def test_cap(self):
+        import json, tempfile
+        from pathlib import Path
+        from rsi.errors import RsiError
+        from rsi.featherbench import MAX_LOOPS, check_submission
+        with tempfile.TemporaryDirectory() as tmp:
+            for loops, ok in ((4, True), (MAX_LOOPS, True), (MAX_LOOPS + 1, False), (0, False), (2.5, False),
+                              ("lots", False), (True, False)):
+                p = Path(tmp) / "alice.json"
+                p.write_text(json.dumps({"model": "looped", "extra": {"loops": loops}}), encoding="utf-8")
+                with self.subTest(loops=loops):
+                    if ok:
+                        self.assertEqual(check_submission(p)[0].extra["loops"], loops)
+                    else:
+                        with self.assertRaises(RsiError):
+                            check_submission(p)

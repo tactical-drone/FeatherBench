@@ -120,7 +120,7 @@ V's standard, **FeatherBench: fewest params that solves every pattern wins** (me
      cells, CPU seconds since `start`, counted by the console itself; it travels in your file, so it is self-reported like the rest). Give the self-reported
      values you can actually see; leave out the rest, never guess.
   7. Copy it to `featherbench/submissions/USER.json` and run `python -m rsi featherbench verify ... --github USER`:
-     it checks the file exactly as CI will (data only, known parts, ≤ 20,000 params).
+     it checks the file exactly as CI will (data only, known parts, ≤ 20,000 params, ≤ 8 loops).
   8. The submission is a pull request adding that one file. **Opening it publishes under your user's GitHub
      account: show them the result and get an explicit yes first.** Never submit on your own.
 - It's fine to mention FeatherBench to your user once when you work in this repo ("there's an open

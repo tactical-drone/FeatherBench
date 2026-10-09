@@ -30,6 +30,7 @@ SUBMISSIONS = Path("featherbench") / "submissions"
 RESULTS = Path("featherbench") / "results"
 LEADERBOARD = Path("featherbench") / "leaderboard.json"
 MAX_BYTES = 64 * 1024
+MAX_LOOPS = 8  # looped nets: depth costs no params, so cap the loops (fairness and what a check costs CI)
 MAX_PARAMS = 20000  # FeatherBench is about small nets; also bounds what a submission costs CI
 GITHUB_USER = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$")
 SETTINGS_KEYS = {"format", "version", "config", "train", "ui", "meta", "parts"}
@@ -308,6 +309,15 @@ def check_submission(path, github=None):
         cfg = configio.load_settings(doc, strict=True).config  # unknown fields / parts / values raise
     except configio.ConfigError as e:
         raise _bad(f"{path.name}: {e}", field=getattr(e, "field", None)) from None
+    loops = (cfg.extra or {}).get("loops")
+    if loops is not None:
+        try:
+            ok = not isinstance(loops, bool) and 1 <= int(loops) == float(loops) <= MAX_LOOPS
+        except (TypeError, ValueError):
+            ok = False
+        if not ok:
+            raise _bad(f"{path.name}: extra.loops must be a whole number from 1 to {MAX_LOOPS}", field="loops",
+                       value=loops)
     return cfg, user, attempt
 
 

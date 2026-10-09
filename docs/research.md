@@ -28,12 +28,15 @@ What we built:
 - `train_step: "cross-loop distill"`: task loss on the last loop + `extra.distill_weight`
   (default 1) x KL(loop `extra.distill_loop`, default the middle one || last loop, detached).
 
-What we measured on the official benchmark: weight sharing works here. Looped nets reach
-the default's accuracy with fewer parameters, because more loops add depth for free. With
-softplus, self-distillation made no difference; with tanh it helped (one more pattern
-solved, the worst pattern several points higher), consistent with the paper's claim that the
-deeper loop is a useful teacher, though not a universal gain at this scale. Exact setups and
-scores are left to the leaderboard: finding the best looped setup is part of the challenge.
+What we measured on the official benchmark: looped nets reach the default's accuracy with
+fewer parameters. With softplus, self-distillation made no difference; with tanh it helped
+(one more pattern solved, the worst pattern several points higher), consistent with the
+paper's claim that the deeper loop is a useful teacher, though not a universal gain at this
+scale. Exact setups and scores are left to the leaderboard: finding the best looped setup is
+part of the challenge.
+
+Rule: a `looped` submission may use at most 8 loops (`extra.loops`), since loops add
+computation without adding parameters.
 
 ## A Fast Algorithm for Maltsev Constraints (arXiv 2610.08207)
 

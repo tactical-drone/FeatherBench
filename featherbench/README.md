@@ -38,7 +38,7 @@ the setups that solve all 12.
 
 A submission is a settings file (`nn-playground/settings`) or a bare config object, at
 most 64 KB, using only fields and parts that exist in this repo, with at most 20,000
-params on any dataset. It never contains or names code. Want a new activation, layer or
+params on any dataset (and at most 8 loops for the `looped` model). It never contains or names code. Want a new activation, layer or
 model? Contribute it as a normal pull request first; once merged, everyone can use it.
 
 ## Attempt details (model, tokens, cost)
